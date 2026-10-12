@@ -101,7 +101,7 @@ Python 3.9 or later is required.
 ```bash
 git clone https://github.com/EliSoldi01/2d-vibration.git
 cd 2d-vibration
-pip install numpy pandas scipy scikit-learn matplotlib openpyxl pillow
+pip install -r requirements.txt
 ```
 
 Notes:
