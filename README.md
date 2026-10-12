@@ -1,4 +1,4 @@
-# 2d-vibration
+# 2d KINESTHETIC ILLUSION MAPPING
 
 Analysis pipeline for kinesthetic-illusion experiments in which the biceps and triceps are stimulated with different patterns and durations, and participants indicate a position on a 2D grid and rate the vividness of the illusion.
 
