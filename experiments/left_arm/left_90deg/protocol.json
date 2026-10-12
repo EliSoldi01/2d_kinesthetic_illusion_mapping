@@ -1,5 +1,5 @@
 {
-  "experiment_id": "baseline",
+  "experiment_id": "left_arm",
   "protocol_id": "left_90deg",  
   "arm": "left",
   "initial_angle": 90,

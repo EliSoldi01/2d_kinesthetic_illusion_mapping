@@ -8,6 +8,7 @@ import config as cfg
 from core.analysis.metrics import compute_r2_metrics
 from core.utils.patterns import pattern_sums
 
+
 # ============================================================
 # WEIGHTED REGRESSION
 # ============================================================
@@ -57,6 +58,7 @@ def get_weights(vividness, n=None, max_vividness=None):
 
     return np.ones(len(vividness), dtype=float)
 
+
 def compute_regression_slope(x, y, vividness, max_vividness=None):
     """
     Fit a linear regression through the origin.
@@ -74,7 +76,7 @@ def compute_regression_slope(x, y, vividness, max_vividness=None):
 
     vividness : array-like
         Trial vividness scores.
-    
+
     max_vividness : float, optional
         Value used to normalize vividness scores when computing weights.
 
@@ -95,31 +97,23 @@ def compute_regression_slope(x, y, vividness, max_vividness=None):
 
     weights = get_weights(vividness, n=len(vividness), max_vividness=max_vividness)
 
-    model = LinearRegression(
-        fit_intercept=False
-    )
+    model = LinearRegression(fit_intercept=False)
 
-    model.fit(
-        x,
-        y,
-        sample_weight=weights
-    )
+    model.fit(x, y, sample_weight=weights)
 
     slope = model.coef_[0]
 
     y_pred = model.predict(x)
 
-    r2_zero = compute_r2_metrics(
-        y,
-        y_pred,
-        weights=weights
-    )["R2_zero"]
+    r2_zero = compute_r2_metrics(y, y_pred, weights=weights)["R2_zero"]
 
     return slope, y_pred, r2_zero
+
 
 # ============================================================
 # MODEL PREDICTION
 # ============================================================
+
 
 def predict_angle(pattern, duration, Kb, Kt):
     """
@@ -153,10 +147,8 @@ def predict_angle(pattern, duration, Kb, Kt):
 
     pb, pt = pattern_sums(pattern)
 
-    return (
-        Kb * pb * duration
-        + Kt * pt * duration
-    )
+    return Kb * pb * duration + Kt * pt * duration
+
 
 def _predict_raw(raw_df, Kb, Kt, max_vividness=None):
     """
@@ -192,35 +184,26 @@ def _predict_raw(raw_df, Kb, Kt, max_vividness=None):
     """
 
     if raw_df.empty:
-        return (
-            np.array([]),
-            np.array([]),
-            np.array([])
-        )
+        return (np.array([]), np.array([]), np.array([]))
 
     y_true = raw_df["angle_deg"].values
 
-    y_pred = np.array([
-        predict_angle(
-            pattern=pattern,
-            duration=duration,
-            Kb=Kb,
-            Kt=Kt
-        )
-        for pattern, duration
-        in zip(
-            raw_df["pattern_pair"],
-            raw_df["duration"]
-        )
-    ])
+    y_pred = np.array(
+        [
+            predict_angle(pattern=pattern, duration=duration, Kb=Kb, Kt=Kt)
+            for pattern, duration in zip(raw_df["pattern_pair"], raw_df["duration"])
+        ]
+    )
 
     weights = get_weights(raw_df["vividness"].values, max_vividness=max_vividness)
 
     return y_true, y_pred, weights
 
+
 # ============================================================
 # SUBJECT PARAMETERS
 # ============================================================
+
 
 def extract_subject_parameters(subj_df, max_vividness=None):
     """
@@ -253,9 +236,7 @@ def extract_subject_parameters(subj_df, max_vividness=None):
 
     for pattern, label in cfg.PURE_PATTERNS.items():
 
-        pat_df = subj_df[
-            subj_df["pattern_pair"] == pattern
-        ]
+        pat_df = subj_df[subj_df["pattern_pair"] == pattern]
 
         if pat_df.empty:
 
@@ -265,10 +246,7 @@ def extract_subject_parameters(subj_df, max_vividness=None):
             continue
 
         slope, _, r2 = compute_regression_slope(
-            x=pat_df["duration"].values,
-            y=pat_df["angle_deg"].values,
-            vividness=pat_df["vividness"].values,
-            max_vividness=max_vividness
+            x=pat_df["duration"].values, y=pat_df["angle_deg"].values, vividness=pat_df["vividness"].values, max_vividness=max_vividness
         )
 
         params[f"K{label}"] = slope
@@ -276,9 +254,11 @@ def extract_subject_parameters(subj_df, max_vividness=None):
 
     return params
 
+
 # ============================================================
 # MODEL PERFORMANCE
 # ============================================================
+
 
 def compute_model_metrics(raw_df, Kb, Kt, max_vividness=None):
     """
@@ -317,52 +297,20 @@ def compute_model_metrics(raw_df, Kb, Kt, max_vividness=None):
         Dictionary containing "R2_zero", "MAE" and "RMSE".
         All values are NaN if raw_df is empty or if Kb or Kt is NaN.
     """
-    if (
-        raw_df.empty
-        or np.isnan(Kb)
-        or np.isnan(Kt)
-    ):
+    if raw_df.empty or np.isnan(Kb) or np.isnan(Kt):
 
-        return {
-            "R2_zero": np.nan,
-            "MAE": np.nan,
-            "RMSE": np.nan
-        }
+        return {"R2_zero": np.nan, "MAE": np.nan, "RMSE": np.nan}
 
-    y_true, y_pred, weights = _predict_raw(
-        raw_df,
-        Kb,
-        Kt,
-        max_vividness=max_vividness
-    )
+    y_true, y_pred, weights = _predict_raw(raw_df, Kb, Kt, max_vividness=max_vividness)
 
-    r2_zero = compute_r2_metrics(
-        y_true,
-        y_pred,
-        weights=weights
-    )["R2_zero"]
+    r2_zero = compute_r2_metrics(y_true, y_pred, weights=weights)["R2_zero"]
 
-    mae = float(
-        np.average(
-            np.abs(y_true - y_pred),
-            weights=weights
-        )
-    )
+    mae = float(np.average(np.abs(y_true - y_pred), weights=weights))
 
-    rmse = float(
-        np.sqrt(
-            np.average(
-                (y_true - y_pred) ** 2,
-                weights=weights
-            )
-        )
-    )
+    rmse = float(np.sqrt(np.average((y_true - y_pred) ** 2, weights=weights)))
 
-    return {
-        "R2_zero": r2_zero,
-        "MAE": mae,
-        "RMSE": rmse
-    }
+    return {"R2_zero": r2_zero, "MAE": mae, "RMSE": rmse}
+
 
 # ============================================================
 # GLOBAL PARAMETERS
@@ -385,7 +333,7 @@ def compute_global_parameters(df, max_vividness=None):
 
     max_vividness : float, optional
         Value used to normalize vividness scores when computing weights.
-        
+
     Returns
     -------
     dict
@@ -397,25 +345,13 @@ def compute_global_parameters(df, max_vividness=None):
         R2_Kt
     """
 
-    biceps_pattern = next(
-        pattern
-        for pattern, label in cfg.PURE_PATTERNS.items()
-        if label == "b"
-    )
+    biceps_pattern = next(pattern for pattern, label in cfg.PURE_PATTERNS.items() if label == "b")
 
-    triceps_pattern = next(
-        pattern
-        for pattern, label in cfg.PURE_PATTERNS.items()
-        if label == "t"
-    )
+    triceps_pattern = next(pattern for pattern, label in cfg.PURE_PATTERNS.items() if label == "t")
 
-    biceps_df = df[
-        df["pattern_pair"] == biceps_pattern
-    ]
+    biceps_df = df[df["pattern_pair"] == biceps_pattern]
 
-    triceps_df = df[
-        df["pattern_pair"] == triceps_pattern
-    ]
+    triceps_df = df[df["pattern_pair"] == triceps_pattern]
 
     if biceps_df.empty:
         Kb = np.nan
@@ -425,7 +361,7 @@ def compute_global_parameters(df, max_vividness=None):
             x=biceps_df["duration"].values,
             y=biceps_df["angle_deg"].values,
             vividness=biceps_df["vividness"].values,
-            max_vividness=max_vividness
+            max_vividness=max_vividness,
         )
 
     if triceps_df.empty:
@@ -436,15 +372,11 @@ def compute_global_parameters(df, max_vividness=None):
             x=triceps_df["duration"].values,
             y=triceps_df["angle_deg"].values,
             vividness=triceps_df["vividness"].values,
-            max_vividness=max_vividness
+            max_vividness=max_vividness,
         )
 
-    return {
-        "Kb": Kb,
-        "Kt": Kt,
-        "R2_Kb": R2_Kb,
-        "R2_Kt": R2_Kt
-    }
+    return {"Kb": Kb, "Kt": Kt, "R2_Kb": R2_Kb, "R2_Kt": R2_Kt}
+
 
 def get_model_predictions(raw_df, Kb, Kt, max_vividness=None):
     """
@@ -483,12 +415,8 @@ def get_model_predictions(raw_df, Kb, Kt, max_vividness=None):
     if raw_df.empty or np.isnan(Kb) or np.isnan(Kt):
         return np.array([]), np.array([]), np.array([])
 
-    return _predict_raw(
-        raw_df,
-        Kb,
-        Kt,
-        max_vividness=max_vividness
-    )
+    return _predict_raw(raw_df, Kb, Kt, max_vividness=max_vividness)
+
 
 # ============================================================
 # COMPLETE MODEL ANALYSIS
@@ -532,7 +460,7 @@ def run_model_analysis(df, subjects, max_vividness=None):
         df_complex
             Trial-level data containing complex patterns only.
     """
-    
+
     # ========================================================
     # SUBJECT PARAMETERS
     # ========================================================
@@ -541,66 +469,37 @@ def run_model_analysis(df, subjects, max_vividness=None):
 
     for subject in subjects:
 
-        subj_df = df[
-            df["subject"] == subject
-        ].copy()
+        subj_df = df[df["subject"] == subject].copy()
 
-        params = extract_subject_parameters(
-            subj_df,
-            max_vividness=max_vividness
-        )
+        params = extract_subject_parameters(subj_df, max_vividness=max_vividness)
 
         # ----------------------------------------------------
         # Subject-level model performance
         # ----------------------------------------------------
 
-        metrics_all_subject = compute_model_metrics(
-            raw_df=subj_df,
-            Kb=params["Kb"],
-            Kt=params["Kt"],
-            max_vividness=max_vividness
-        )
+        metrics_all_subject = compute_model_metrics(raw_df=subj_df, Kb=params["Kb"], Kt=params["Kt"], max_vividness=max_vividness)
 
-        complex_df_subject = subj_df[
-            ~subj_df["pattern_pair"].isin(
-                cfg.PURE_PATTERNS.keys()
-            )
-        ].copy()
+        complex_df_subject = subj_df[~subj_df["pattern_pair"].isin(cfg.PURE_PATTERNS.keys())].copy()
 
         metrics_complex_subject = compute_model_metrics(
-            raw_df=complex_df_subject,
-            Kb=params["Kb"],
-            Kt=params["Kt"],
-            max_vividness=max_vividness
+            raw_df=complex_df_subject, Kb=params["Kb"], Kt=params["Kt"], max_vividness=max_vividness
         )
 
         # ----------------------------------------------------
         # Store subject results
         # ----------------------------------------------------
 
-        params["R2_full_all"] = (
-            metrics_all_subject["R2_zero"]
-        )
+        params["R2_full_all"] = metrics_all_subject["R2_zero"]
 
-        params["MAE_full_all"] = (
-            metrics_all_subject["MAE"]
-        )
+        params["MAE_full_all"] = metrics_all_subject["MAE"]
 
-        params["RMSE_full_all"] = (
-            metrics_all_subject["RMSE"]
-        )
+        params["RMSE_full_all"] = metrics_all_subject["RMSE"]
 
-        params["R2_complex"] = (
-            metrics_complex_subject["R2_zero"]
-        )
+        params["R2_complex"] = metrics_complex_subject["R2_zero"]
 
-        params["MAE_complex"] = (
-            metrics_complex_subject["MAE"]
-        )
+        params["MAE_complex"] = metrics_complex_subject["MAE"]
 
-        params["RMSE_complex"] = (
-            metrics_complex_subject["RMSE"]
-        )
+        params["RMSE_complex"] = metrics_complex_subject["RMSE"]
 
         subject_parameters[subject] = params
 
@@ -608,10 +507,7 @@ def run_model_analysis(df, subjects, max_vividness=None):
     # GLOBAL PARAMETERS
     # ========================================================
 
-    global_parameters = compute_global_parameters(
-        df,
-        max_vividness=max_vividness
-    )
+    global_parameters = compute_global_parameters(df, max_vividness=max_vividness)
 
     Kb_global = global_parameters["Kb"]
     Kt_global = global_parameters["Kt"]
@@ -620,25 +516,11 @@ def run_model_analysis(df, subjects, max_vividness=None):
     # GLOBAL MODEL PERFORMANCE
     # ========================================================
 
-    global_metrics_all = compute_model_metrics(
-        raw_df=df,
-        Kb=Kb_global,
-        Kt=Kt_global,
-        max_vividness=max_vividness
-    )
+    global_metrics_all = compute_model_metrics(raw_df=df, Kb=Kb_global, Kt=Kt_global, max_vividness=max_vividness)
 
-    df_complex = df[
-        ~df["pattern_pair"].isin(
-            cfg.PURE_PATTERNS.keys()
-        )
-    ].copy()
+    df_complex = df[~df["pattern_pair"].isin(cfg.PURE_PATTERNS.keys())].copy()
 
-    global_metrics_complex = compute_model_metrics(
-        raw_df=df_complex,
-        Kb=Kb_global,
-        Kt=Kt_global,
-        max_vividness=max_vividness
-    )
+    global_metrics_complex = compute_model_metrics(raw_df=df_complex, Kb=Kb_global, Kt=Kt_global, max_vividness=max_vividness)
 
     # ========================================================
     # RETURN
@@ -649,5 +531,5 @@ def run_model_analysis(df, subjects, max_vividness=None):
         "global_parameters": global_parameters,
         "global_metrics_all": global_metrics_all,
         "global_metrics_complex": global_metrics_complex,
-        "df_complex": df_complex
+        "df_complex": df_complex,
     }

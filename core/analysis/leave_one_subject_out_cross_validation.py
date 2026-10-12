@@ -3,17 +3,13 @@
 import numpy as np
 
 import config as cfg
-from core.analysis.extract_model_parameters import (
-    compute_global_parameters,
-    compute_model_metrics,
-    get_model_predictions
-)
+from core.analysis.extract_model_parameters import compute_global_parameters, compute_model_metrics, get_model_predictions
 from core.analysis.metrics import compute_r2_metrics
-
 
 # ===================================================
 # HELPER FUNCTIONS
 # ===================================================
+
 
 def _compute_loso_summary(subjects_results):
     """
@@ -114,38 +110,19 @@ def _compute_pooled_metrics(y_true, y_pred, weights):
     y_pred = np.asarray(y_pred)
     weights = np.asarray(weights)
 
-    r2_zero = compute_r2_metrics(
-        y_true,
-        y_pred,
-        weights=weights
-    )["R2_zero"]
+    r2_zero = compute_r2_metrics(y_true, y_pred, weights=weights)["R2_zero"]
 
-    mae = float(
-        np.average(
-            np.abs(y_true - y_pred),
-            weights=weights
-        )
-    )
+    mae = float(np.average(np.abs(y_true - y_pred), weights=weights))
 
-    rmse = float(
-        np.sqrt(
-            np.average(
-                (y_true - y_pred) ** 2,
-                weights=weights
-            )
-        )
-    )
+    rmse = float(np.sqrt(np.average((y_true - y_pred) ** 2, weights=weights)))
 
-    return {
-        "R2_zero": np.round(r2_zero, 2),
-        "MAE": np.round(mae, 2),
-        "RMSE": np.round(rmse, 2)
-    }
+    return {"R2_zero": np.round(r2_zero, 2), "MAE": np.round(mae, 2), "RMSE": np.round(rmse, 2)}
 
 
 # ============================================================
 # LOOCV leave-one-subject-out
 # ============================================================
+
 
 def run_leave_one_subject_out_cross_validation(df, protocol):
     """
@@ -190,19 +167,9 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
     """
 
     results = {
-        "model_parameters": {
-            "summary": {}
-        },
-        "all_patterns": {
-            "subjects_results": [],
-            "summary": {},
-            "pooled": {}
-        },
-        "complex_patterns": {
-            "subjects_results": [],
-            "summary": {},
-            "pooled": {}
-        },
+        "model_parameters": {"summary": {}},
+        "all_patterns": {"subjects_results": [], "summary": {}, "pooled": {}},
+        "complex_patterns": {"subjects_results": [], "summary": {}, "pooled": {}},
     }
 
     all_y_true = []
@@ -216,11 +183,7 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
     kb_values = []
     kt_values = []
 
-    max_vividness = (
-        None
-        if not cfg.USE_VIVIDNESS_WEIGHTS
-        else max(protocol["scales"]["vividness"]["values"])
-    )
+    max_vividness = None if not cfg.USE_VIVIDNESS_WEIGHTS else max(protocol["scales"]["vividness"]["values"])
 
     subjects = df["subject"].dropna().unique()
 
@@ -233,10 +196,7 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
         # TRAINING
         # =====================================
 
-        parameters = compute_global_parameters(
-            train_df,
-            max_vividness=max_vividness
-        )
+        parameters = compute_global_parameters(train_df, max_vividness=max_vividness)
 
         Kb = parameters["Kb"]
         Kt = parameters["Kt"]
@@ -248,12 +208,7 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
         # TESTING - ALL PATTERNS
         # =====================================
 
-        metrics = compute_model_metrics(
-            test_df,
-            Kb,
-            Kt,
-            max_vividness=max_vividness
-        )
+        metrics = compute_model_metrics(test_df, Kb, Kt, max_vividness=max_vividness)
 
         all_result = {
             "subject": subject,
@@ -265,12 +220,7 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
             "RMSE": np.round(metrics["RMSE"], 2),
         }
 
-        y_true, y_pred, weights = get_model_predictions(
-            test_df,
-            Kb,
-            Kt,
-            max_vividness=max_vividness
-        )
+        y_true, y_pred, weights = get_model_predictions(test_df, Kb, Kt, max_vividness=max_vividness)
 
         all_y_true.extend(y_true)
         all_y_pred.extend(y_pred)
@@ -280,16 +230,9 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
         # TESTING - COMPLEX PATTERNS
         # =====================================
 
-        complex_df = test_df[
-            ~test_df["pattern_pair"].isin(cfg.PURE_PATTERNS.keys())
-        ].copy()
+        complex_df = test_df[~test_df["pattern_pair"].isin(cfg.PURE_PATTERNS.keys())].copy()
 
-        metrics_complex = compute_model_metrics(
-            complex_df,
-            Kb,
-            Kt,
-            max_vividness=max_vividness
-        )
+        metrics_complex = compute_model_metrics(complex_df, Kb, Kt, max_vividness=max_vividness)
 
         complex_result = {
             "subject": subject,
@@ -301,12 +244,7 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
             "RMSE": np.round(metrics_complex["RMSE"], 2),
         }
 
-        y_true_complex, y_pred_complex, weights_complex = get_model_predictions(
-            complex_df,
-            Kb,
-            Kt,
-            max_vividness=max_vividness
-        )
+        y_true_complex, y_pred_complex, weights_complex = get_model_predictions(complex_df, Kb, Kt, max_vividness=max_vividness)
 
         complex_y_true.extend(y_true_complex)
         complex_y_pred.extend(y_pred_complex)
@@ -323,33 +261,18 @@ def run_leave_one_subject_out_cross_validation(df, protocol):
     # SUMMARY
     # ========================================================
 
-    results["model_parameters"]["summary"] = _compute_parameter_summary(
-        kb_values,
-        kt_values
-    )
+    results["model_parameters"]["summary"] = _compute_parameter_summary(kb_values, kt_values)
 
-    results["all_patterns"]["summary"] = _compute_loso_summary(
-        results["all_patterns"]["subjects_results"]
-    )
+    results["all_patterns"]["summary"] = _compute_loso_summary(results["all_patterns"]["subjects_results"])
 
-    results["complex_patterns"]["summary"] = _compute_loso_summary(
-        results["complex_patterns"]["subjects_results"]
-    )
+    results["complex_patterns"]["summary"] = _compute_loso_summary(results["complex_patterns"]["subjects_results"])
 
     # ========================================================
     # POOLED PERFORMANCE
     # ========================================================
 
-    results["all_patterns"]["pooled"] = _compute_pooled_metrics(
-        all_y_true,
-        all_y_pred,
-        all_weights
-    )
+    results["all_patterns"]["pooled"] = _compute_pooled_metrics(all_y_true, all_y_pred, all_weights)
 
-    results["complex_patterns"]["pooled"] = _compute_pooled_metrics(
-        complex_y_true,
-        complex_y_pred,
-        complex_weights
-    )
+    results["complex_patterns"]["pooled"] = _compute_pooled_metrics(complex_y_true, complex_y_pred, complex_weights)
 
     return results

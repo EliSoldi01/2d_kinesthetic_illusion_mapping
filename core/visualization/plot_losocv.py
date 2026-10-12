@@ -29,7 +29,16 @@ def plot_loso_performance(results, output_path=None):
     -------
     None
     """
-    plt.rcParams["font.family"] = "Times New Roman"
+    # Fontsize for title, axes, labels and legend
+    plt.rcParams.update(
+        {
+            "axes.titlesize": 16,
+            "axes.labelsize": 16,
+            "xtick.labelsize": 14,
+            "ytick.labelsize": 14,
+            "legend.fontsize": 14,
+        }
+    )
 
     def plot_panel(ax, pattern_type):
         """
@@ -48,57 +57,36 @@ def plot_loso_performance(results, output_path=None):
         None
         """
 
+        plt.rcParams.update(
+            {
+                "axes.titlesize": 16,
+                "axes.labelsize": 16,
+                "xtick.labelsize": 14,
+                "ytick.labelsize": 14,
+                "legend.fontsize": 14,
+            }
+        )
+
         pattern_results = results[pattern_type]["subjects_results"]
         pooled_point = results[pattern_type]["pooled"]
 
         for result in pattern_results:
-            ax.scatter(
-                result["MAE"],
-                result["R2_zero"],
-                color="#7cb4fd"
-            )
+            ax.scatter(result["MAE"], result["R2_zero"], color="#7cb4fd")
 
-            ax.annotate(
-                result["subject"],
-                (result["MAE"], result["R2_zero"]),
-                xytext=(5, 5),
-                textcoords="offset points"
-            )
+            ax.annotate(result["subject"], (result["MAE"], result["R2_zero"]), xytext=(5, 5), textcoords="offset points", fontsize=14)
 
-        ax.scatter(
-            pooled_point["MAE"],
-            pooled_point["R2_zero"],
-            marker="D",
-            color="red",
-            s=80,
-            label="Pooled"
-        )
+        ax.scatter(pooled_point["MAE"], pooled_point["R2_zero"], marker="D", color="red", s=80, label="Pooled")
 
-        r2_values = [
-            result["R2_zero"]
-            for result in pattern_results
-        ]
+        r2_values = [result["R2_zero"] for result in pattern_results]
         r2_values.append(pooled_point["R2_zero"])
 
-        ax.set_ylim(
-            min(r2_values) - 0.5,
-            max(r2_values) + 0.5
-        )
+        ax.set_ylim(min(r2_values) - 0.5, max(r2_values) + 0.5)
 
-        ax.axhline(
-            y=0,
-            color="blue",
-            linestyle="--",
-            alpha=0.4
-        )
+        ax.axhline(y=0, color="blue", linestyle="--", alpha=0.4)
 
-        ax.set_title(
-            "All patterns"
-            if pattern_type == "all_patterns"
-            else "Complex patterns"
-        )
+        ax.set_title("Leave-One-Subject-Out Cross-Validation")
         ax.set_xlabel("MAE (°)")
-        ax.set_ylabel(r"$R^2$")
+        ax.set_ylabel(r"$R^2_0$")
         ax.margins(x=0.15)
         ax.legend()
 
@@ -110,8 +98,6 @@ def plot_loso_performance(results, output_path=None):
 
     plot_panel(axes[0], "all_patterns")
     plot_panel(axes[1], "complex_patterns")
-
-    fig.suptitle("Leave-One-Subject-Out Cross-Validation")
 
     plt.tight_layout()
 
@@ -134,22 +120,10 @@ def plot_loso_performance(results, output_path=None):
 
             plot_panel(ax, pattern_type)
 
-            fig.suptitle(
-                "Leave-One-Subject-Out Cross-Validation"
-            )
-
             plt.tight_layout()
 
-            filename = (
-                "loso_performance_all_patterns.png"
-                if pattern_type == "all_patterns"
-                else "loso_performance_complex_patterns.png"
-            )
+            filename = "loso_performance_all_patterns.png" if pattern_type == "all_patterns" else "loso_performance_complex_patterns.png"
 
-            fig.savefig(
-                output_path / filename,
-                dpi=300,
-                bbox_inches="tight"
-            )
+            fig.savefig(output_path / filename, dpi=300, bbox_inches="tight")
 
             # plt.show()

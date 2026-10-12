@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def add_presentation_order(df, subject_orders, duration_col="duration"):
     """
     Add subject-specific presentation order.
@@ -32,10 +33,7 @@ def add_presentation_order(df, subject_orders, duration_col="duration"):
     df = df.copy()
 
     if isinstance(subject_orders, pd.DataFrame):
-        order_map = dict(
-            zip(subject_orders["subject"].astype(str),
-                subject_orders["block_order"])
-        )
+        order_map = dict(zip(subject_orders["subject"].astype(str), subject_orders["block_order"]))
     else:
         order_map = subject_orders
 
@@ -58,7 +56,6 @@ def add_presentation_order(df, subject_orders, duration_col="duration"):
         # Divide la stringa usando il trattino '-' anziché iterare sui singoli caratteri
         order = [int(d) for d in block_order.split("-")]
         return order.index(int(row[duration_col])) + 1
-
 
     df["presentation_order"] = df.apply(map_order, axis=1)
     return df

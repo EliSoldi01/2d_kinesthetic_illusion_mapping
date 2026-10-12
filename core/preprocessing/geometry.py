@@ -27,10 +27,8 @@ def cell_to_cm(x, y, cell_size):
     np.ndarray
         Array [x_cm, y_cm] with the physical coordinates of the cell center.
     """
-    return np.array([
-        (x - 1) * cell_size + cell_size / 2,
-        (y - 1) * cell_size + cell_size / 2
-    ])
+    return np.array([(x - 1) * cell_size + cell_size / 2, (y - 1) * cell_size + cell_size / 2])
+
 
 def grid_coordinate_to_cm(
     coordinate: float,
@@ -56,6 +54,7 @@ def grid_coordinate_to_cm(
         Physical coordinate of the cell center, in cm.
     """
     return (coordinate - 1.0) * cell_size_cm + cell_size_cm / 2.0
+
 
 def grid_point_to_cm(
     x_cell: float,
@@ -88,12 +87,8 @@ def grid_point_to_cm(
         grid_coordinate_to_cm(y_cell, cell_size_cm),
     )
 
-def compute_elbow(
-    start_cm,
-    forearm_length,
-    forearm_angle_deg,
-    arm="right"
-):
+
+def compute_elbow(start_cm, forearm_length, forearm_angle_deg, arm="right"):
     """
     Compute elbow position in cm from the wrist/start position.
 
@@ -157,14 +152,7 @@ def signed_angle(v_ref, v_cur):
     return np.degrees(np.arctan2(det, dot))
 
 
-def compute_angle(
-    start_cell,
-    index_cell,
-    forearm_cm,
-    forearm_angle_deg,
-    cell_size,
-    arm="right"
-):
+def compute_angle(start_cell, index_cell, forearm_cm, forearm_angle_deg, cell_size, arm="right"):
     """
     Compute elbow-centered angular deviation (degrees)
     relative to the baseline forearm direction.
@@ -207,35 +195,19 @@ def compute_angle(
     if np.isnan(forearm_cm) or np.isnan(forearm_angle_deg):
         return np.nan
 
-    start_cm = cell_to_cm(
-        *start_cell,
-        cell_size=cell_size
-    )
+    start_cm = cell_to_cm(*start_cell, cell_size=cell_size)
 
-    index_cm = cell_to_cm(
-        *index_cell,
-        cell_size=cell_size
-    )
+    index_cm = cell_to_cm(*index_cell, cell_size=cell_size)
 
-    elbow_cm = compute_elbow(
-        start_cm,
-        forearm_cm,
-        forearm_angle_deg,
-        arm=arm
-    )
+    elbow_cm = compute_elbow(start_cm, forearm_cm, forearm_angle_deg, arm=arm)
 
     baseline_vec = start_cm - elbow_cm
     current_vec = index_cm - elbow_cm
 
-    angle = signed_angle(
-        baseline_vec,
-        current_vec
-    )
+    angle = signed_angle(baseline_vec, current_vec)
 
     # Keep the convention used for the left arm
     if arm == "left":
         angle = -angle
 
     return angle
-
-

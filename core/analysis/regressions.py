@@ -6,10 +6,10 @@ from sklearn.linear_model import LinearRegression
 import config as cfg
 from core.analysis.metrics import compute_r2_metrics
 
-
 # ============================================================
 # CORE REGRESSION
 # ============================================================
+
 
 def fit_linear_regression(x, y, weights=None):
     """
@@ -79,6 +79,7 @@ def fit_linear_regression(x, y, weights=None):
 # WEIGHTS
 # ============================================================
 
+
 def _get_weights(df, max_vividness=None):
     """
     Return regression weights according to the project configuration.
@@ -113,6 +114,7 @@ def _get_weights(df, max_vividness=None):
 # ============================================================
 # REGRESSION SUMMARY
 # ============================================================
+
 
 def regression_summary(df, x_col, y_col, group_col=None, max_vividness=None):
     """
@@ -159,6 +161,7 @@ def regression_summary(df, x_col, y_col, group_col=None, max_vividness=None):
 # DATA AGGREGATION
 # ============================================================
 
+
 def aggregate_subject_means(df):
     """
     Average repetitions for each subject × pattern × duration.
@@ -175,12 +178,9 @@ def aggregate_subject_means(df):
         One row per subject × pattern × duration, with the mean
         "angle_deg" and "vividness".
     """
-    return (
-        df.groupby(["subject", "pattern_pair", "duration"], as_index=False)
-        .agg(
-            angle_deg=("angle_deg", "mean"),
-            vividness=("vividness", "mean"),
-        )
+    return df.groupby(["subject", "pattern_pair", "duration"], as_index=False).agg(
+        angle_deg=("angle_deg", "mean"),
+        vividness=("vividness", "mean"),
     )
 
 
@@ -198,18 +198,16 @@ def aggregate_global_means(df):
     pandas.DataFrame
         One row per pattern × duration.
     """
-    return (
-        df.groupby(["pattern_pair", "duration"], as_index=False)
-        .agg(
-            angle_deg=("angle_deg", "mean"),
-            vividness=("vividness", "mean"),
-        )
+    return df.groupby(["pattern_pair", "duration"], as_index=False).agg(
+        angle_deg=("angle_deg", "mean"),
+        vividness=("vividness", "mean"),
     )
 
 
 # ============================================================
 # PRINTING
 # ============================================================
+
 
 def _print_regression_result(pattern, analysis_name, result):
     """
@@ -244,7 +242,8 @@ def _print_regression_result(pattern, analysis_name, result):
 # GLOBAL / ALL SUBJECTS
 # ============================================================
 
-def run_global_regression(df, patterns, x_col, y_col, analysis_name, max_vividness = None):
+
+def run_global_regression(df, patterns, x_col, y_col, analysis_name, max_vividness=None):
     """
     Run one regression for each pattern at the global/group level.
 
@@ -287,7 +286,7 @@ def run_global_regression(df, patterns, x_col, y_col, analysis_name, max_vividne
 
         result = regression_summary(df_pattern, x_col=x_col, y_col=y_col, max_vividness=max_vividness)
 
-        #_print_regression_result(pattern, analysis_name, result)
+        # _print_regression_result(pattern, analysis_name, result)
         results[pattern] = result
 
     return results
@@ -296,6 +295,7 @@ def run_global_regression(df, patterns, x_col, y_col, analysis_name, max_vividne
 # ============================================================
 # SUBJECT LEVEL
 # ============================================================
+
 
 def run_subject_regression(df, patterns, x_col, y_col, max_vividness=None):
     """
@@ -335,13 +335,7 @@ def run_subject_regression(df, patterns, x_col, y_col, max_vividness=None):
             results[pattern] = []
             continue
 
-        results[pattern] = regression_summary(
-            df_pattern,
-            x_col=x_col,
-            y_col=y_col,
-            group_col="subject",
-            max_vividness=max_vividness
-        )
+        results[pattern] = regression_summary(df_pattern, x_col=x_col, y_col=y_col, group_col="subject", max_vividness=max_vividness)
 
     return results
 
@@ -349,6 +343,7 @@ def run_subject_regression(df, patterns, x_col, y_col, max_vividness=None):
 # ============================================================
 # TRIAL LEVEL
 # ============================================================
+
 
 def run_trial_regression(df, patterns, x_col, y_col, analysis_name, max_vividness=None):
     """
@@ -389,14 +384,16 @@ def run_trial_regression(df, patterns, x_col, y_col, analysis_name, max_vividnes
 
         result = regression_summary(df_pattern, x_col=x_col, y_col=y_col, max_vividness=max_vividness)
 
-        #_print_regression_result(pattern, analysis_name, result)
+        # _print_regression_result(pattern, analysis_name, result)
         results[pattern] = result
 
     return results
 
+
 # ============================================================
 # REGRESSION ANALYSIS
 # ============================================================
+
 
 def run_regression_analysis(df, protocol, group_level=True, subject_level=True, trial_level=True, max_vividness=None):
     """
@@ -469,23 +466,17 @@ def run_regression_analysis(df, protocol, group_level=True, subject_level=True, 
     if group_level:
         print("     -> Running global regressions 1/3: Angle vs duration")
         results["group_level"]["angle_vs_duration"] = run_global_regression(
-            df, patterns, "duration", "angle_deg",
-            "GLOBAL: angle vs duration",
-            max_vividness=max_vividness
+            df, patterns, "duration", "angle_deg", "GLOBAL: angle vs duration", max_vividness=max_vividness
         )
 
         print("     -> Running global regressions 2/3: Vividness vs duration")
         results["group_level"]["vividness_vs_duration"] = run_global_regression(
-            df, patterns, "duration", "vividness",
-            "GLOBAL: vividness vs duration",
-            max_vividness=max_vividness
+            df, patterns, "duration", "vividness", "GLOBAL: vividness vs duration", max_vividness=max_vividness
         )
 
         print("     -> Running global regressions 3/3: Angle vs vividness")
         results["group_level"]["angle_vs_vividness"] = run_global_regression(
-            df, patterns, "vividness", "angle_deg",
-            "GLOBAL: angle vs vividness",
-            max_vividness=max_vividness
+            df, patterns, "vividness", "angle_deg", "GLOBAL: angle vs vividness", max_vividness=max_vividness
         )
 
         plot_data["group_level"] = {
@@ -500,20 +491,17 @@ def run_regression_analysis(df, protocol, group_level=True, subject_level=True, 
     if subject_level:
         print("     -> Running subject regressions 1/3: Angle vs duration")
         results["subject_level"]["angle_vs_duration"] = run_subject_regression(
-            df, patterns, "duration", "angle_deg",
-            max_vividness=max_vividness
+            df, patterns, "duration", "angle_deg", max_vividness=max_vividness
         )
 
         print("     -> Running subject regressions 2/3: Vividness vs duration")
         results["subject_level"]["vividness_vs_duration"] = run_subject_regression(
-            df, patterns, "duration", "vividness",
-            max_vividness=max_vividness
+            df, patterns, "duration", "vividness", max_vividness=max_vividness
         )
 
         print("     -> Running subject regressions 3/3: Angle vs vividness")
         results["subject_level"]["angle_vs_vividness"] = run_subject_regression(
-            df, patterns, "vividness", "angle_deg",
-            max_vividness=max_vividness
+            df, patterns, "vividness", "angle_deg", max_vividness=max_vividness
         )
 
         plot_data["subject_level"] = {
@@ -528,9 +516,7 @@ def run_regression_analysis(df, protocol, group_level=True, subject_level=True, 
 
         print("     -> Running trial level regressions: Angle vs duration")
         results["trial_level"]["angle_vs_duration"] = run_trial_regression(
-            df, patterns, "duration", "angle_deg",
-            "TRIAL LEVEL: angle vs duration",
-            max_vividness=max_vividness
+            df, patterns, "duration", "angle_deg", "TRIAL LEVEL: angle vs duration", max_vividness=max_vividness
         )
 
         plot_data["trial_level"] = {

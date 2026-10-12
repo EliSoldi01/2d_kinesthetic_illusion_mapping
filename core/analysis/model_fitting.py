@@ -12,10 +12,11 @@ from core.analysis.metrics import (
     compute_aic,
 )
 
+
 # ============================================================
-# UTIL 
+# UTIL
 # ============================================================
-def prepare_data_for_model_fitting(group_validation_df_path): 
+def prepare_data_for_model_fitting(group_validation_df_path):
     """
     Prepare validation data and model parameters for model fitting.
 
@@ -44,52 +45,35 @@ def prepare_data_for_model_fitting(group_validation_df_path):
     ValueError
         If no valid data are available for model fitting.
     """
-    
-    df_validation = pd.read_excel(
-        group_validation_df_path,
-        sheet_name="Validation"
-    )
+
+    df_validation = pd.read_excel(group_validation_df_path, sheet_name="Validation")
 
     # ----------------------------------------------------
     # Select valid data
     # ----------------------------------------------------
 
-    df_model_fitting = df_validation[
-        np.isfinite(
-            df_validation["ideal_angle"]
-        )
-        & np.isfinite(
-            df_validation["real_mean"]
-        )
-    ].copy()
+    df_model_fitting = df_validation[np.isfinite(df_validation["ideal_angle"]) & np.isfinite(df_validation["real_mean"])].copy()
 
     if df_model_fitting.empty:
 
-        raise ValueError(
-            "No valid data available for model fitting."
-        )
+        raise ValueError("No valid data available for model fitting.")
 
-    x = df_model_fitting[
-        "ideal_angle"
-    ].to_numpy()
+    x = df_model_fitting["ideal_angle"].to_numpy()
 
-    y = df_model_fitting[
-        "real_mean"
-    ].to_numpy()
+    y = df_model_fitting["real_mean"].to_numpy()
 
-    df_parameters = pd.read_excel(
-        group_validation_df_path,
-        sheet_name="Parameters"
-    )
+    df_parameters = pd.read_excel(group_validation_df_path, sheet_name="Parameters")
 
     Kb = df_parameters["Kb"].iloc[-1]
     Kt = df_parameters["Kt"].iloc[-1]
 
     return x, y, df_model_fitting, Kb, Kt
 
+
 # ============================================================
 # MODELS
 # ============================================================
+
 
 def linear_model(x, slope):
     """
@@ -169,15 +153,13 @@ def logistic_sigmoid(x, L_min, L_max, k, D0):
     array-like
         Model values at x.
     """
-    return (
-        L_min
-        + (L_max - L_min)
-        / (1 + np.exp(-k * (x - D0)))
-    )
+    return L_min + (L_max - L_min) / (1 + np.exp(-k * (x - D0)))
+
 
 # ============================================================
 # SINGLE MODEL FIT
 # ============================================================
+
 
 def fit_one(
     model_func,
@@ -213,40 +195,22 @@ def fit_one(
         fitting status.
     """
 
-    x = np.asarray(
-        x,
-        dtype=float
-    )
+    x = np.asarray(x, dtype=float)
 
-    y = np.asarray(
-        y,
-        dtype=float
-    )
+    y = np.asarray(y, dtype=float)
 
-    valid = (
-        np.isfinite(x)
-        & np.isfinite(y)
-    )
+    valid = np.isfinite(x) & np.isfinite(y)
 
     x = x[valid]
     y = y[valid]
 
     if weights is not None:
 
-        weights = np.asarray(
-            weights,
-            dtype=float
-        )[valid]
+        weights = np.asarray(weights, dtype=float)[valid]
 
-        weights = np.where(
-            weights <= 0,
-            np.nan,
-            weights
-        )
+        weights = np.where(weights <= 0, np.nan, weights)
 
-        valid_weights = np.isfinite(
-            weights
-        )
+        valid_weights = np.isfinite(weights)
 
         x = x[valid_weights]
         y = y[valid_weights]
@@ -271,100 +235,54 @@ def fit_one(
             maxfev=100000,
         )
 
-        y_pred = model_func(
-            x,
-            *popt
-        )
+        y_pred = model_func(x, *popt)
 
         # ----------------------------------------------------
         # Standard errors and 95% CI of parameters
         # ----------------------------------------------------
 
-        if (
-            pcov is not None
-            and np.all(np.isfinite(pcov))
-        ):
+        if pcov is not None and np.all(np.isfinite(pcov)):
 
-            params_se = np.sqrt(
-                np.diag(pcov)
-            )
+            params_se = np.sqrt(np.diag(pcov))
 
             # Residual degrees of freedom
             df_resid = len(y) - len(popt)
 
             if df_resid > 0:
 
-                t_critical = t.ppf(
-                    0.975,
-                    df_resid
-                )
+                t_critical = t.ppf(0.975, df_resid)
 
-                params_ci_lower = (
-                    popt
-                    - t_critical * params_se
-                )
+                params_ci_lower = popt - t_critical * params_se
 
-                params_ci_upper = (
-                    popt
-                    + t_critical * params_se
-                )
+                params_ci_upper = popt + t_critical * params_se
 
-                params_ci = np.column_stack(
-                    (
-                        params_ci_lower,
-                        params_ci_upper
-                    )
-                )
+                params_ci = np.column_stack((params_ci_lower, params_ci_upper))
 
             else:
 
-                params_ci = np.full(
-                    (len(popt), 2),
-                    np.nan
-                )
+                params_ci = np.full((len(popt), 2), np.nan)
 
         else:
 
-            params_se = np.full(
-                len(popt),
-                np.nan
-            )
+            params_se = np.full(len(popt), np.nan)
 
-            params_ci = np.full(
-                (len(popt), 2),
-                np.nan
-            )
+            params_ci = np.full((len(popt), 2), np.nan)
 
         # ----------------------------------------------------
         # Metrics
         # ----------------------------------------------------
 
-        r2_metrics = compute_r2_metrics(
-            y,
-            y_pred
-        )
+        r2_metrics = compute_r2_metrics(y, y_pred)
 
-        mae = compute_mae(
-            y,
-            y_pred
-        )
+        mae = compute_mae(y, y_pred)
 
-        rmse = compute_rmse(
-            y,
-            y_pred
-        )
+        rmse = compute_rmse(y, y_pred)
 
         residuals = y - y_pred
 
-        rss = np.sum(
-            residuals ** 2
-        )
+        rss = np.sum(residuals**2)
 
-        aic = compute_aic(
-            n=len(y),
-            rss=rss,
-            k=len(popt)
-        )
+        aic = compute_aic(n=len(y), rss=rss, k=len(popt))
 
         return {
             "params": popt,
@@ -384,9 +302,7 @@ def fit_one(
 
     except Exception as e:
 
-        print(
-            f"Model fitting failed: {e}"
-        )
+        print(f"Model fitting failed: {e}")
 
         return {
             "params": None,
@@ -404,6 +320,7 @@ def fit_one(
             "ok": False,
             "error": str(e),
         }
+
 
 def fit_models(
     x,
@@ -433,15 +350,9 @@ def fit_models(
         Dictionary containing the fitting results for each model.
     """
 
-    x = np.asarray(
-        x,
-        dtype=float
-    )
+    x = np.asarray(x, dtype=float)
 
-    y = np.asarray(
-        y,
-        dtype=float
-    )
+    y = np.asarray(y, dtype=float)
 
     # ========================================================
     # LINEAR
@@ -453,19 +364,14 @@ def fit_models(
         y,
         weights=weights,
         p0=[1.0],
-        bounds=(
-            [-np.inf],
-            [np.inf]
-        ),
+        bounds=([-np.inf], [np.inf]),
     )
 
     # ========================================================
     # TANH SIGMOID
     # ========================================================
 
-    L0 = np.nanmax(
-        np.abs(y)
-    )
+    L0 = np.nanmax(np.abs(y))
 
     if not np.isfinite(L0) or L0 <= 0:
         L0 = 1.0
@@ -481,10 +387,7 @@ def fit_models(
             L0,
             k0,
         ],
-        bounds=(
-            [0.0, 0.0],
-            [np.inf, np.inf]
-        ),
+        bounds=([0.0, 0.0], [np.inf, np.inf]),
     )
 
     # ========================================================
@@ -545,9 +448,11 @@ def fit_models(
         "logistic4": logistic_result,
     }
 
+
 # ============================================================
 # BEST MODEL
 # ============================================================
+
 
 def get_best_model(results):
     """
@@ -573,22 +478,13 @@ def get_best_model(results):
 
     for name, result in results.items():
 
-        if not isinstance(
-            result,
-            dict
-        ):
+        if not isinstance(result, dict):
             continue
 
-        if not result.get(
-            "ok",
-            False
-        ):
+        if not result.get("ok", False):
             continue
 
-        aic = result.get(
-            "aic",
-            np.nan
-        )
+        aic = result.get("aic", np.nan)
 
         if not np.isfinite(aic):
             continue
@@ -596,14 +492,9 @@ def get_best_model(results):
         valid_models[name] = aic
 
     if not valid_models:
-        raise ValueError(
-            "No valid model with finite AIC."
-        )
+        raise ValueError("No valid model with finite AIC.")
 
-    return min(
-        valid_models,
-        key=valid_models.get
-    )
+    return min(valid_models, key=valid_models.get)
 
 
 def model_confidence_band(
@@ -667,24 +558,16 @@ def model_confidence_band(
 
     if pcov is None:
 
-        raise ValueError(
-            "Parameter covariance matrix is required "
-            "to calculate the confidence band."
-        )
+        raise ValueError("Parameter covariance matrix is required " "to calculate the confidence band.")
 
     pcov = np.asarray(
         pcov,
         dtype=float,
     )
 
-    if not np.all(
-        np.isfinite(pcov)
-    ):
+    if not np.all(np.isfinite(pcov)):
 
-        raise ValueError(
-            "Parameter covariance matrix contains "
-            "non-finite values."
-        )
+        raise ValueError("Parameter covariance matrix contains " "non-finite values.")
 
     n_params = len(params)
 
@@ -694,10 +577,7 @@ def model_confidence_band(
     ):
 
         raise ValueError(
-            "Parameter covariance matrix has "
-            "an incompatible shape: "
-            f"{pcov.shape}. Expected "
-            f"({n_params}, {n_params})."
+            "Parameter covariance matrix has " "an incompatible shape: " f"{pcov.shape}. Expected " f"({n_params}, {n_params})."
         )
 
     # ========================================================
@@ -732,27 +612,22 @@ def model_confidence_band(
         # dy/dL = tanh(k*x)
         # dy/dk = L*x*sech²(k*x)
 
-        tanh_value = np.tanh(
-            k * x
-        )
+        tanh_value = np.tanh(k * x)
 
-        sech2 = (
-            1.0
-            - tanh_value ** 2
-        )
+        sech2 = 1.0 - tanh_value**2
 
-        J = np.column_stack([
-            tanh_value,
-            L * x * sech2,
-        ])
+        J = np.column_stack(
+            [
+                tanh_value,
+                L * x * sech2,
+            ]
+        )
 
     elif model_name == "logistic4":
 
         L_min, L_max, k, D0 = params
 
-        z = k * (
-            x - D0
-        )
+        z = k * (x - D0)
 
         # ----------------------------------------------------
         # Numerically stable logistic function
@@ -763,27 +638,11 @@ def model_confidence_band(
         positive = z >= 0
         negative = ~positive
 
-        q[positive] = (
-            1.0
-            / (
-                1.0
-                + np.exp(
-                    -z[positive]
-                )
-            )
-        )
+        q[positive] = 1.0 / (1.0 + np.exp(-z[positive]))
 
-        exp_z = np.exp(
-            z[negative]
-        )
+        exp_z = np.exp(z[negative])
 
-        q[negative] = (
-            exp_z
-            / (
-                1.0
-                + exp_z
-            )
-        )
+        q[negative] = exp_z / (1.0 + exp_z)
 
         y_fit = logistic_sigmoid(
             x,
@@ -806,31 +665,20 @@ def model_confidence_band(
         #   -(L_max-L_min)*k*q*(1-q)
         # ----------------------------------------------------
 
-        dq = (
-            q
-            * (1.0 - q)
-        )
+        dq = q * (1.0 - q)
 
-        J = np.column_stack([
-            1.0 - q,
-            q,
-            (
-                (L_max - L_min)
-                * (x - D0)
-                * dq
-            ),
-            (
-                -(L_max - L_min)
-                * k
-                * dq
-            ),
-        ])
+        J = np.column_stack(
+            [
+                1.0 - q,
+                q,
+                ((L_max - L_min) * (x - D0) * dq),
+                (-(L_max - L_min) * k * dq),
+            ]
+        )
 
     else:
 
-        raise ValueError(
-            f"Unknown model: {model_name}"
-        )
+        raise ValueError(f"Unknown model: {model_name}")
 
     # ========================================================
     # DELTA-METHOD VARIANCE
@@ -850,23 +698,15 @@ def model_confidence_band(
         0.0,
     )
 
-    se = np.sqrt(
-        variance
-    )
+    se = np.sqrt(variance)
 
     # ========================================================
     # CRITICAL VALUE
     # ========================================================
 
-    alpha = (
-        1.0
-        - confidence
-    )
+    alpha = 1.0 - confidence
 
-    if (
-        df_resid is not None
-        and df_resid > 0
-    ):
+    if df_resid is not None and df_resid > 0:
 
         critical_value = t.ppf(
             1.0 - alpha / 2.0,
@@ -882,28 +722,14 @@ def model_confidence_band(
     # CONFIDENCE LIMITS
     # ========================================================
 
-    margin = (
-        critical_value
-        * se
-    )
+    margin = critical_value * se
 
-    lower = (
-        y_fit
-        - margin
-    )
+    lower = y_fit - margin
 
-    upper = (
-        y_fit
-        + margin
-    )
+    upper = y_fit + margin
 
     return (
         y_fit,
         lower,
         upper,
     )
-
-
-
-
-

@@ -3,6 +3,12 @@ import core.analysis.saturation as sat
 import config as cfg
 import math
 
+from pathlib import Path
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 def plot_comparison(
     x,
     y,
@@ -41,13 +47,17 @@ def plot_comparison(
     None
     """
 
-    from pathlib import Path
+    fig, ax = plt.subplots(figsize=(8, 6))
 
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(
-        figsize=(8, 6)
+    # Fontsize for title, axes, labels and legend
+    plt.rcParams.update(
+        {
+            "axes.titlesize": 18,
+            "axes.labelsize": 18,
+            "xtick.labelsize": 16,
+            "ytick.labelsize": 16,
+            "legend.fontsize": 16,
+        }
     )
 
     # ========================================================
@@ -79,18 +89,9 @@ def plot_comparison(
     # AIC / DELTA AIC
     # ========================================================
 
-    valid_aics = [
-        result["aic"]
-        for result in results.values()
-        if result.get("ok", False)
-        and np.isfinite(result.get("aic", np.nan))
-    ]
+    valid_aics = [result["aic"] for result in results.values() if result.get("ok", False) and np.isfinite(result.get("aic", np.nan))]
 
-    min_aic = (
-        min(valid_aics)
-        if valid_aics
-        else np.nan
-    )
+    min_aic = min(valid_aics) if valid_aics else np.nan
 
     # ========================================================
     # MODEL STYLES
@@ -108,10 +109,7 @@ def plot_comparison(
 
     for name, result in results.items():
 
-        if not result.get(
-            "ok",
-            False
-        ):
+        if not result.get("ok", False):
             continue
 
         params = result["params"]
@@ -148,15 +146,9 @@ def plot_comparison(
         # Metrics
         # ----------------------------------------------------
 
-        r2 = result.get(
-            "r2_zero",
-            np.nan
-        )
+        r2 = result.get("r2_mean", np.nan)
 
-        aic = result.get(
-            "aic",
-            np.nan
-        )
+        aic = result.get("aic", np.nan)
 
         if np.isfinite(aic) and np.isfinite(min_aic):
             delta_aic = aic - min_aic
@@ -167,12 +159,7 @@ def plot_comparison(
         # Legend label
         # ----------------------------------------------------
 
-        label = (
-            f"{name} "
-            f"($R^2$={r2:.3f}, "
-            f"AIC={aic:.2f}, "
-            f"$\\Delta$AIC={delta_aic:.2f})"
-        )
+        label = f"{name} " f"($R^2$={r2:.2f}, " f"AIC={aic:.2f}, " f"$\\Delta$AIC={delta_aic:.2f})"
 
         # ----------------------------------------------------
         # Plot
@@ -181,10 +168,7 @@ def plot_comparison(
         ax.plot(
             x_range,
             y_range,
-            styles.get(
-                name,
-                "-"
-            ),
+            styles.get(name, "-"),
             label=label,
         )
 
@@ -192,19 +176,13 @@ def plot_comparison(
     # AXES
     # ========================================================
 
-    ax.set_xlabel(
-        "Ideal angle (deg)"
-    )
+    ax.set_xlabel("Ideal angle (deg)")
 
-    ax.set_ylabel(
-        "Real angle (deg)"
-    )
+    ax.set_ylabel("Real angle (deg)")
 
     ax.legend()
 
-    ax.grid(
-        alpha=0.3
-    )
+    ax.grid(alpha=0.3)
 
     fig.tight_layout()
 
@@ -214,19 +192,14 @@ def plot_comparison(
 
     if output_folder is not None:
 
-        output_folder = Path(
-            output_folder
-        )
+        output_folder = Path(output_folder)
 
         output_folder.mkdir(
             parents=True,
             exist_ok=True,
         )
 
-        path = (
-            output_folder
-            / "model_comparison.png"
-        )
+        path = output_folder / "model_comparison.png"
 
         fig.savefig(
             path,
@@ -234,11 +207,10 @@ def plot_comparison(
             bbox_inches="tight",
         )
 
-        print(
-            f"Model comparison saved to: {path}"
-        )
+        print(f"Model comparison saved to: {path}")
 
     plt.close(fig)
+
 
 def plot_best_model(
     df,
@@ -250,7 +222,7 @@ def plot_best_model(
     plot_saturation_points=False,
     confidence=0.95,
     output_name="best_model.png",
-    forced_best_model=None
+    forced_best_model=None,
 ):
     """
     Plot experimental group means (± SD) together with
@@ -323,15 +295,23 @@ def plot_best_model(
     import matplotlib.pyplot as plt
     import numpy as np
 
+    # Fontsize for title, axes, labels and legend
+    plt.rcParams.update(
+        {
+            "axes.titlesize": 24,
+            "axes.labelsize": 20,
+            "xtick.labelsize": 18,
+            "ytick.labelsize": 18,
+            "legend.fontsize": 22,
+        }
+    )
+
     # ========================================================
     # CHECK RESULTS
     # ========================================================
 
     if results is None:
-        raise ValueError(
-            "plot_best_model requires "
-            "'results' from fit_models()."
-        )
+        raise ValueError("plot_best_model requires " "'results' from fit_models().")
 
     # ========================================================
     # COPY / FILTER DATA
@@ -340,30 +320,19 @@ def plot_best_model(
     df = df.copy()
 
     # Duration 0 is not part of the validation plot.
-    df = df[
-        df["duration"] != 0
-    ].copy()
+    df = df[df["duration"] != 0].copy()
 
     if selected_patterns is not None:
-        df = df[
-            df["pattern"].isin(
-                selected_patterns
-            )
-        ].copy()
+        df = df[df["pattern"].isin(selected_patterns)].copy()
 
     if df.empty:
-        raise ValueError(
-            "No data available for plotting "
-            "after filtering."
-        )
+        raise ValueError("No data available for plotting " "after filtering.")
 
     # ========================================================
     # CREATE FIGURE
     # ========================================================
 
-    fig, ax = plt.subplots(
-        figsize=(14, 10)
-    )
+    fig, ax = plt.subplots(figsize=(14, 10))
 
     # ========================================================
     # BEST MODEL
@@ -372,13 +341,9 @@ def plot_best_model(
     if forced_best_model is not None:
         best_name = forced_best_model
     else:
-        best_name = mf.get_best_model(
-            results
-        )
+        best_name = mf.get_best_model(results)
 
-    best_model = results[
-        best_name
-    ]
+    best_model = results[best_name]
 
     # ========================================================
     # SATURATION POINT
@@ -437,19 +402,13 @@ def plot_best_model(
 
     else:
 
-        raise ValueError(
-            f"Unknown model: {best_name}"
-        )
+        raise ValueError(f"Unknown model: {best_name}")
 
     # ========================================================
     # SATURATION POINT
     # ========================================================
 
-    if (
-        plot_saturation_points
-        and saturation is not None
-        and saturation["has_saturation"]
-    ):
+    if plot_saturation_points and saturation is not None and saturation["has_saturation"]:
 
         ax.scatter(
             saturation["x_sat"],
@@ -458,20 +417,10 @@ def plot_best_model(
             s=120,
             color="red",
             zorder=7,
-            label=(
-                f"Saturation onset "
-                f"({int(saturation['threshold'] * 100)}%)"
-            ),
+            label=(f"Saturation onset " f"({int(saturation['threshold'] * 100)}%)"),
         )
 
-        ax.scatter(
-            -saturation["x_sat"],
-            -saturation["y_sat"],
-            marker="x",
-            s=120,
-            color="red",
-            zorder=7
-        )
+        ax.scatter(-saturation["x_sat"], -saturation["y_sat"], marker="x", s=120, color="red", zorder=7)
 
     # ========================================================
     # CONFIDENCE BAND
@@ -479,18 +428,11 @@ def plot_best_model(
 
     if plot_confidence_band:
 
-        n_obs = len(
-            best_model["x"]
-        )
+        n_obs = len(best_model["x"])
 
-        n_params = len(
-            best_model["params"]
-        )
+        n_params = len(best_model["params"])
 
-        df_resid = (
-            n_obs
-            - n_params
-        )
+        df_resid = n_obs - n_params
 
         (
             _,
@@ -509,9 +451,7 @@ def plot_best_model(
     # FONT
     # ========================================================
 
-    plt.rcParams[
-        "font.family"
-    ] = "Times New Roman"
+    plt.rcParams["font.family"] = "Times New Roman"
 
     # ========================================================
     # COLORS / LEGEND ORDER / MARKERS
@@ -537,21 +477,13 @@ def plot_best_model(
         # Pattern colors and legend order
         # ----------------------------------------------------
 
-        definitions = (
-            protocol
-            .get("patterns", {})
-            .get("definitions", [])
-        )
+        definitions = protocol.get("patterns", {}).get("definitions", [])
 
         for definition in definitions:
 
-            text = definition.get(
-                "text"
-            )
+            text = definition.get("text")
 
-            color = definition.get(
-                "color"
-            )
+            color = definition.get("color")
 
             position = definition.get(
                 "legend_position",
@@ -562,32 +494,19 @@ def plot_best_model(
 
                 colors[text] = color
 
-                legend_order[
-                    text
-                ] = position
+                legend_order[text] = position
 
         # ----------------------------------------------------
         # Duration markers
         # ----------------------------------------------------
 
-        duration_markers = (
-            protocol
-            .get("blocks", {})
-            .get(
-                "duration_markers",
-                {}
-            )
-        )
+        duration_markers = protocol.get("blocks", {}).get("duration_markers", {})
 
-        for duration, marker in (
-            duration_markers.items()
-        ):
+        for duration, marker in duration_markers.items():
 
             try:
 
-                marker_map[
-                    int(duration)
-                ] = marker
+                marker_map[int(duration)] = marker
 
             except (
                 ValueError,
@@ -613,29 +532,23 @@ def plot_best_model(
     # FALLBACK COLORS
     # ========================================================
 
-    missing_patterns = (
-        set(df["pattern"].unique())
-        - set(colors.keys())
-    )
+    missing_patterns = set(df["pattern"].unique()) - set(colors.keys())
 
     if missing_patterns:
 
         cmap = plt.cm.tab20
 
-        for i, pattern in enumerate(
-            sorted(missing_patterns)
-        ):
+        for i, pattern in enumerate(sorted(missing_patterns)):
 
             colors[pattern] = cmap(
-                i / max(
+                i
+                / max(
                     1,
                     len(missing_patterns),
                 )
             )
 
-            legend_order[
-                pattern
-            ] = 999
+            legend_order[pattern] = 999
 
     # ========================================================
     # CONFIDENCE BAND
@@ -649,9 +562,7 @@ def plot_best_model(
             upper_band,
             color="#3d3d3d44",
             alpha=0.20,
-            label=(
-                f"{int(confidence * 100)}% CI"
-            ),
+            label=(f"{int(confidence * 100)}% Confidence Band"),
             zorder=2,
         )
 
@@ -661,21 +572,13 @@ def plot_best_model(
 
     for _, row in df.iterrows():
 
-        x = row[
-            "ideal_angle"
-        ]
+        x = row["ideal_angle"]
 
-        y = row[
-            "real_mean"
-        ]
+        y = row["real_mean"]
 
-        pattern = row[
-            "pattern"
-        ]
+        pattern = row["pattern"]
 
-        duration = row[
-            "duration"
-        ]
+        duration = row["duration"]
 
         color = colors.get(
             pattern,
@@ -698,10 +601,7 @@ def plot_best_model(
             marker=marker,
             s=100,
             alpha=0.9,
-            label=(
-                f"{pattern} "
-                f"{duration}"
-            ),
+            label=(f"{pattern} " f"{duration}"),
             zorder=4,
         )
 
@@ -709,9 +609,7 @@ def plot_best_model(
         # ± SD
         # ----------------------------------------------------
 
-        sd = row[
-            "real_std"
-        ]
+        sd = row["real_std"]
 
         if np.isfinite(sd):
 
@@ -736,10 +634,7 @@ def plot_best_model(
         y_fit,
         style,
         linewidth=2.5,
-        label=(
-            f"{best_name} "
-            f"R²={best_model['r2_zero']:.3f}"
-        ),
+        label=(f"{best_name} " f"R²={best_model['r2_mean']:.2f}"),
         zorder=6,
     )
 
@@ -747,9 +642,7 @@ def plot_best_model(
     # LEGEND
     # ========================================================
 
-    handles, labels = (
-        ax.get_legend_handles_labels()
-    )
+    handles, labels = ax.get_legend_handles_labels()
 
     unique = dict(
         zip(
@@ -776,11 +669,9 @@ def plot_best_model(
         int
             Sorting key (lower values come first).
         """
-        if label.startswith(
-            best_name
-        ):
+        if label.startswith(best_name):
             return 9998
-        
+
         if label.startswith("Saturation"):
             return 9999
 
@@ -797,23 +688,16 @@ def plot_best_model(
 
     sorted_items = sorted(
         unique.items(),
-        key=lambda item:
-            sort_key(item[0]),
+        key=lambda item: sort_key(item[0]),
     )
 
     if sorted_items:
 
-        sorted_labels, sorted_handles = zip(
-            *sorted_items
-        )
+        sorted_labels, sorted_handles = zip(*sorted_items)
 
-        sorted_labels = list(
-            sorted_labels
-        )
+        sorted_labels = list(sorted_labels)
 
-        sorted_handles = list(
-            sorted_handles
-        )
+        sorted_handles = list(sorted_handles)
 
     else:
 
@@ -847,57 +731,30 @@ def plot_best_model(
     all_values = []
 
     # Experimental x values
-    all_values.extend(
-        df["ideal_angle"]
-        .dropna()
-        .to_numpy()
-    )
+    all_values.extend(df["ideal_angle"].dropna().to_numpy())
 
     # Experimental means
-    all_values.extend(
-        df["real_mean"]
-        .dropna()
-        .to_numpy()
-    )
+    all_values.extend(df["real_mean"].dropna().to_numpy())
 
     # Experimental SD intervals
-    valid_sd = (
-        df["real_mean"].notna()
-        & df["real_std"].notna()
-    )
+    valid_sd = df["real_mean"].notna() & df["real_std"].notna()
 
     if valid_sd.any():
 
-        means = (
-            df.loc[
-                valid_sd,
-                "real_mean"
-            ].to_numpy()
-        )
+        means = df.loc[valid_sd, "real_mean"].to_numpy()
 
-        stds = (
-            df.loc[
-                valid_sd,
-                "real_std"
-            ].to_numpy()
-        )
+        stds = df.loc[valid_sd, "real_std"].to_numpy()
 
-        all_values.extend(
-            (means - stds).tolist()
-        )
+        all_values.extend((means - stds).tolist())
 
-        all_values.extend(
-            (means + stds).tolist()
-        )
+        all_values.extend((means + stds).tolist())
 
     all_values = np.asarray(
         all_values,
         dtype=float,
     )
 
-    all_values = all_values[
-        np.isfinite(all_values)
-    ]
+    all_values = all_values[np.isfinite(all_values)]
 
     if len(all_values) == 0:
 
@@ -905,17 +762,11 @@ def plot_best_model(
 
     else:
 
-        axis_max = np.max(
-            np.abs(all_values)
-        )
+        axis_max = np.max(np.abs(all_values))
 
-    padding = (
-        0.10 * axis_max
-    )
+    padding = 0.10 * axis_max
 
-    axis_limit = (
-        axis_max + padding
-    )
+    axis_limit = axis_max + padding
 
     # Same limits for X and Y
     ax.set_xlim(
@@ -940,12 +791,10 @@ def plot_best_model(
 
     ax.set_xlabel(
         "Ideal mean Δθ (°)",
-        fontsize=20,
     )
 
     ax.set_ylabel(
         "Real mean Δθ (°)",
-        fontsize=20,
     )
 
     # ========================================================
@@ -962,7 +811,6 @@ def plot_best_model(
             sorted_labels,
             bbox_to_anchor=(1.02, 0.5),
             loc="center left",
-            fontsize=16,
             frameon=False,
             ncol=n_cols,
             columnspacing=1.2,
@@ -997,19 +845,14 @@ def plot_best_model(
 
     if output_folder is not None:
 
-        output_folder = Path(
-            output_folder
-        )
+        output_folder = Path(output_folder)
 
         output_folder.mkdir(
             parents=True,
             exist_ok=True,
         )
 
-        out_path = (
-            output_folder
-            / output_name
-        )
+        out_path = output_folder / output_name
 
         fig.savefig(
             out_path,
@@ -1017,11 +860,7 @@ def plot_best_model(
             bbox_inches="tight",
         )
 
-        print(
-            "[plot_best_model] "
-            f"Saved: {out_path}"
-        )
+        print("[plot_best_model] " f"Saved: {out_path}")
 
     plt.show()
     plt.close(fig)
-

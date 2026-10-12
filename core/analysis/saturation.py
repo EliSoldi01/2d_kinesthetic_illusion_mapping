@@ -5,10 +5,10 @@ import numpy as np
 import config as cfg
 import core.analysis.model_fitting as mf
 
-
 # ============================================================
 # THRESHOLD UTILITIES
 # ============================================================
+
 
 def _normalize_thresholds(threshold):
     """
@@ -39,7 +39,6 @@ def _normalize_thresholds(threshold):
         If any threshold is not strictly between 0 and 1.
     """
 
-
     if np.isscalar(threshold):
         thresholds = [float(threshold)]
     else:
@@ -47,9 +46,7 @@ def _normalize_thresholds(threshold):
 
     for value in thresholds:
         if not (0 < value < 1):
-            raise ValueError(
-                "All saturation thresholds must be between 0 and 1."
-            )
+            raise ValueError("All saturation thresholds must be between 0 and 1.")
 
     return thresholds
 
@@ -57,6 +54,7 @@ def _normalize_thresholds(threshold):
 # ============================================================
 # SATURATION
 # ============================================================
+
 
 def get_saturation_info(
     results,
@@ -126,32 +124,23 @@ def get_saturation_info(
     """
 
     if not np.isscalar(threshold):
-        raise ValueError(
-            "get_saturation_info() expects a single threshold. "
-            "Use get_saturation_infos() for multiple thresholds."
-        )
+        raise ValueError("get_saturation_info() expects a single threshold. " "Use get_saturation_infos() for multiple thresholds.")
 
     threshold = float(threshold)
 
     if not (0 < threshold < 1):
-        raise ValueError(
-            "threshold must be between 0 and 1."
-        )
+        raise ValueError("threshold must be between 0 and 1.")
 
     if best_model_name is None:
         best_model_name = mf.get_best_model(results)
 
     if best_model_name not in results:
-        raise ValueError(
-            f"Model '{best_model_name}' not found in results."
-        )
+        raise ValueError(f"Model '{best_model_name}' not found in results.")
 
     result = results[best_model_name]
 
     if not result.get("ok", False):
-        raise ValueError(
-            f"Model '{best_model_name}' is not valid."
-        )
+        raise ValueError(f"Model '{best_model_name}' is not valid.")
 
     params = result["params"]
 
@@ -175,14 +164,9 @@ def get_saturation_info(
 
         L, k = params
 
-        x_sat = (
-            np.arctanh(threshold)
-            / abs(k)
-        )
+        x_sat = np.arctanh(threshold) / abs(k)
 
-        y_sat = (
-            threshold * abs(L)
-        )
+        y_sat = threshold * abs(L)
 
         return {
             "model": "tanh",
@@ -207,45 +191,25 @@ def get_saturation_info(
         low = 1.0 - threshold
         high = threshold
 
-        x_low = (
-            D0
-            + np.log(
-                low / (1.0 - low)
-            ) / k
-        )
+        x_low = D0 + np.log(low / (1.0 - low)) / k
 
-        x_high = (
-            D0
-            + np.log(
-                high / (1.0 - high)
-            ) / k
-        )
+        x_high = D0 + np.log(high / (1.0 - high)) / k
 
-        y_low = (
-            L_min
-            + low * (L_max - L_min)
-        )
+        y_low = L_min + low * (L_max - L_min)
 
-        y_high = (
-            L_min
-            + high * (L_max - L_min)
-        )
+        y_high = L_min + high * (L_max - L_min)
 
         return {
             "model": "logistic4",
             "has_saturation": True,
             "threshold": threshold,
-
             # Main saturation point = upper point
             "x_sat": x_high,
             "y_sat": y_high,
-
             "x_sat_low": x_low,
             "x_sat_high": x_high,
-
             "y_sat_low": y_low,
             "y_sat_high": y_high,
-
             "L_min": L_min,
             "L_max": L_max,
             "k": k,
@@ -254,9 +218,7 @@ def get_saturation_info(
 
     else:
 
-        raise ValueError(
-            f"Unknown model: {best_model_name}"
-        )
+        raise ValueError(f"Unknown model: {best_model_name}")
 
 
 def get_saturation_infos(
@@ -314,6 +276,7 @@ def get_saturation_infos(
 # BACKWARD-COMPATIBLE SATURATION POINT
 # ============================================================
 
+
 def calculate_saturation_point(
     results,
     threshold=cfg.SATURATION_THRESHOLD,
@@ -348,7 +311,6 @@ def calculate_saturation_point(
         model has no saturation (linear).
     """
 
-
     info = get_saturation_info(
         results,
         threshold=threshold,
@@ -366,6 +328,7 @@ def calculate_saturation_point(
 # ============================================================
 # EQUIVALENT STIMULATION DURATION
 # ============================================================
+
 
 def calculate_equivalent_stimulation_duration(
     saturation_angle,
@@ -420,44 +383,25 @@ def calculate_equivalent_stimulation_duration(
     """
 
     if not isinstance(pattern, str):
-        raise ValueError(
-            "pattern must be a string."
-        )
+        raise ValueError("pattern must be a string.")
 
     parts = pattern.split("_")
 
     if len(parts) != 2:
-        raise ValueError(
-            f"Invalid pattern '{pattern}'. "
-            "Expected format 'BBB_TTT'."
-        )
+        raise ValueError(f"Invalid pattern '{pattern}'. " "Expected format 'BBB_TTT'.")
 
     try:
-        pb = sum(
-            int(value)
-            for value in parts[0]
-        )
+        pb = sum(int(value) for value in parts[0])
 
-        pt = sum(
-            int(value)
-            for value in parts[1]
-        )
+        pt = sum(int(value) for value in parts[1])
 
     except ValueError:
-        raise ValueError(
-            f"Invalid pattern '{pattern}'."
-        )
+        raise ValueError(f"Invalid pattern '{pattern}'.")
 
-    denominator = (
-        Kb * pb
-        + Kt * pt
-    )
+    denominator = Kb * pb + Kt * pt
 
     if denominator == 0:
-        raise ValueError(
-            f"Pattern '{pattern}' produces "
-            "a zero denominator."
-        )
+        raise ValueError(f"Pattern '{pattern}' produces " "a zero denominator.")
 
     return saturation_angle / denominator
 
@@ -465,6 +409,7 @@ def calculate_equivalent_stimulation_duration(
 # ============================================================
 # SATURATION DURATIONS
 # ============================================================
+
 
 def calculate_saturation_durations(
     results,
@@ -514,11 +459,13 @@ def calculate_saturation_durations(
 
         if not saturation["has_saturation"]:
 
-            outputs.append({
-                "model": saturation["model"],
-                "has_saturation": False,
-                "threshold": current_threshold,
-            })
+            outputs.append(
+                {
+                    "model": saturation["model"],
+                    "has_saturation": False,
+                    "threshold": current_threshold,
+                }
+            )
 
             continue
 
@@ -547,122 +494,77 @@ def calculate_saturation_durations(
 
         else:
 
-            raise ValueError(
-                f"Unsupported model: {saturation['model']}"
-            )
+            raise ValueError(f"Unsupported model: {saturation['model']}")
 
         # ----------------------------------------------------
         # Pure stimulation patterns
         # ----------------------------------------------------
 
-        biceps_pattern = next(
-            pattern
-            for pattern, label in cfg.PURE_PATTERNS.items()
-            if label == "b"
-        )
+        biceps_pattern = next(pattern for pattern, label in cfg.PURE_PATTERNS.items() if label == "b")
 
-        triceps_pattern = next(
-            pattern
-            for pattern, label in cfg.PURE_PATTERNS.items()
-            if label == "t"
-        )
+        triceps_pattern = next(pattern for pattern, label in cfg.PURE_PATTERNS.items() if label == "t")
 
         # ----------------------------------------------------
         # Ideal durations
         # ----------------------------------------------------
 
-        duration_biceps_ideal = (
-            calculate_equivalent_stimulation_duration(
-                theta_biceps_ideal,
-                Kb,
-                Kt,
-                biceps_pattern,
-            )
+        duration_biceps_ideal = calculate_equivalent_stimulation_duration(
+            theta_biceps_ideal,
+            Kb,
+            Kt,
+            biceps_pattern,
         )
 
-        duration_triceps_ideal = (
-            calculate_equivalent_stimulation_duration(
-                theta_triceps_ideal,
-                Kb,
-                Kt,
-                triceps_pattern,
-            )
+        duration_triceps_ideal = calculate_equivalent_stimulation_duration(
+            theta_triceps_ideal,
+            Kb,
+            Kt,
+            triceps_pattern,
         )
 
         # ----------------------------------------------------
         # Real durations
         # ----------------------------------------------------
 
-        duration_biceps_real = (
-            calculate_equivalent_stimulation_duration(
-                theta_biceps_real,
-                Kb,
-                Kt,
-                biceps_pattern,
-            )
+        duration_biceps_real = calculate_equivalent_stimulation_duration(
+            theta_biceps_real,
+            Kb,
+            Kt,
+            biceps_pattern,
         )
 
-        duration_triceps_real = (
-            calculate_equivalent_stimulation_duration(
-                theta_triceps_real,
-                Kb,
-                Kt,
-                triceps_pattern,
-            )
+        duration_triceps_real = calculate_equivalent_stimulation_duration(
+            theta_triceps_real,
+            Kb,
+            Kt,
+            triceps_pattern,
         )
 
         output = {
             "model": saturation["model"],
             "has_saturation": True,
             "threshold": current_threshold,
-
             # ------------------------------------------------
             # Saturation coordinates
             # ------------------------------------------------
-
-            "x_sat_biceps":
-                theta_biceps_ideal,
-
-            "y_sat_biceps":
-                theta_biceps_real,
-
-            "x_sat_triceps":
-                theta_triceps_ideal,
-
-            "y_sat_triceps":
-                theta_triceps_real,
-
+            "x_sat_biceps": theta_biceps_ideal,
+            "y_sat_biceps": theta_biceps_real,
+            "x_sat_triceps": theta_triceps_ideal,
+            "y_sat_triceps": theta_triceps_real,
             # ------------------------------------------------
             # Equivalent durations
             # ------------------------------------------------
-
-            "duration_biceps_ideal":
-                duration_biceps_ideal,
-
-            "duration_biceps_real":
-                duration_biceps_real,
-
-            "duration_triceps_ideal":
-                duration_triceps_ideal,
-
-            "duration_triceps_real":
-                duration_triceps_real,
-
+            "duration_biceps_ideal": duration_biceps_ideal,
+            "duration_biceps_real": duration_biceps_real,
+            "duration_triceps_ideal": duration_triceps_ideal,
+            "duration_triceps_real": duration_triceps_real,
             # ------------------------------------------------
             # Backward-compatible names
             # ------------------------------------------------
-
-            "saturation_angle_biceps":
-                theta_biceps_real,
-
-            "saturation_angle_triceps":
-                theta_triceps_real,
-
-            "duration_biceps":
-                duration_biceps_real,
-
-            "duration_triceps":
-                duration_triceps_real,
+            "saturation_angle_biceps": theta_biceps_real,
+            "saturation_angle_triceps": theta_triceps_real,
+            "duration_biceps": duration_biceps_real,
+            "duration_triceps": duration_triceps_real,
         }
 
         # ----------------------------------------------------
@@ -671,32 +573,18 @@ def calculate_saturation_durations(
 
         if saturation["model"] == "logistic4":
 
-            output.update({
-
-                "saturation_angle_low":
-                    saturation["y_sat_low"],
-
-                "saturation_angle_high":
-                    saturation["y_sat_high"],
-
-                "x_saturation_angle_low":
-                    saturation["x_sat_low"],
-
-                "x_saturation_angle_high":
-                    saturation["x_sat_high"],
-
-                "duration_low_ideal":
-                    duration_triceps_ideal,
-
-                "duration_low_real":
-                    duration_triceps_real,
-
-                "duration_high_ideal":
-                    duration_biceps_ideal,
-
-                "duration_high_real":
-                    duration_biceps_real,
-            })
+            output.update(
+                {
+                    "saturation_angle_low": saturation["y_sat_low"],
+                    "saturation_angle_high": saturation["y_sat_high"],
+                    "x_saturation_angle_low": saturation["x_sat_low"],
+                    "x_saturation_angle_high": saturation["x_sat_high"],
+                    "duration_low_ideal": duration_triceps_ideal,
+                    "duration_low_real": duration_triceps_real,
+                    "duration_high_ideal": duration_biceps_ideal,
+                    "duration_high_real": duration_biceps_real,
+                }
+            )
 
         outputs.append(output)
 

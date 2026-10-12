@@ -1,6 +1,7 @@
 # core/excels/loso_results.py
 import pandas as pd
 
+
 def _create_per_subject_dataframe(results):
     """
     Create a DataFrame containing LOSO metrics for each subject.
@@ -18,7 +19,6 @@ def _create_per_subject_dataframe(results):
         for all patterns and for complex patterns only.
     """
 
-
     all_results = results["all_patterns"]["subjects_results"]
     complex_results = results["complex_patterns"]["subjects_results"]
 
@@ -26,19 +26,22 @@ def _create_per_subject_dataframe(results):
 
     for all_result, complex_result in zip(all_results, complex_results):
 
-        rows.append({
-            "subject": all_result["subject"],
-            "Kb": all_result["Kb"],
-            "Kt": all_result["Kt"],
-            "R2_zero_all_patterns": all_result["R2_zero"],
-            "MAE_all_patterns": all_result["MAE"],
-            "RMSE_all_patterns": all_result["RMSE"],
-            "R2_zero_complex_patterns": complex_result["R2_zero"],
-            "MAE_complex_patterns": complex_result["MAE"],
-            "RMSE_complex_patterns": complex_result["RMSE"],
-        })
+        rows.append(
+            {
+                "subject": all_result["subject"],
+                "Kb": all_result["Kb"],
+                "Kt": all_result["Kt"],
+                "R2_zero_all_patterns": all_result["R2_zero"],
+                "MAE_all_patterns": all_result["MAE"],
+                "RMSE_all_patterns": all_result["RMSE"],
+                "R2_zero_complex_patterns": complex_result["R2_zero"],
+                "MAE_complex_patterns": complex_result["MAE"],
+                "RMSE_complex_patterns": complex_result["RMSE"],
+            }
+        )
 
     return pd.DataFrame(rows)
+
 
 def _create_summary_dataframe(results):
     """
@@ -64,12 +67,14 @@ def _create_summary_dataframe(results):
     parameter_summary = results["model_parameters"]["summary"]
 
     for metric in parameter_summary["included_metrics"]:
-        rows.append({
-            "dataset": "model_parameters",
-            "metric": metric,
-            "mean": parameter_summary[f"Mean_{metric}"],
-            "sd": parameter_summary[f"Std_{metric}"]
-        })
+        rows.append(
+            {
+                "dataset": "model_parameters",
+                "metric": metric,
+                "mean": parameter_summary[f"Mean_{metric}"],
+                "sd": parameter_summary[f"Std_{metric}"],
+            }
+        )
 
     # Performance metrics
     for dataset_name in ["all_patterns", "complex_patterns"]:
@@ -77,14 +82,10 @@ def _create_summary_dataframe(results):
         summary = results[dataset_name]["summary"]
 
         for metric in summary["included_metrics"]:
-            rows.append({
-                "dataset": dataset_name,
-                "metric": metric,
-                "mean": summary[f"Mean_{metric}"],
-                "sd": summary[f"Std_{metric}"]
-            })
+            rows.append({"dataset": dataset_name, "metric": metric, "mean": summary[f"Mean_{metric}"], "sd": summary[f"Std_{metric}"]})
 
     return pd.DataFrame(rows)
+
 
 def _create_pooled_dataframe(results):
     """
@@ -103,19 +104,15 @@ def _create_pooled_dataframe(results):
         the pooled R2_zero, MAE and RMSE.
     """
     rows = []
-    
+
     for dataset_name in ["all_patterns", "complex_patterns"]:
 
         pooled = results[dataset_name]["pooled"]
 
-        rows.append({
-            "dataset": dataset_name,
-            "R2_zero": pooled["R2_zero"],
-            "MAE": pooled["MAE"],
-            "RMSE": pooled["RMSE"]
-        })
+        rows.append({"dataset": dataset_name, "R2_zero": pooled["R2_zero"], "MAE": pooled["MAE"], "RMSE": pooled["RMSE"]})
 
     return pd.DataFrame(rows)
+
 
 def save_loso_results(results, output_path):
     """
@@ -153,8 +150,3 @@ def save_loso_results(results, output_path):
         per_subject_df.to_excel(writer, sheet_name="LOSO_per_subject", index=False)
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
         pooled_df.to_excel(writer, sheet_name="Pooled", index=False)
-
-
-
-        
-

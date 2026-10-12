@@ -103,39 +103,22 @@ def validate_protocol(protocol):
         # Required fields
         for field in required_pattern_fields:
             if field not in pattern:
-                errors.append(
-                    f"Pattern {pattern_id} missing field: {field}"
-                )
+                errors.append(f"Pattern {pattern_id} missing field: {field}")
 
         # Biceps
         if "biceps" in pattern:
-            if (
-                not isinstance(pattern["biceps"], list)
-                or len(pattern["biceps"]) != patterns["sequence_length"]
-            ):
-                errors.append(
-                    f"Pattern {pattern_id} has invalid biceps: "
-                    f"{pattern['biceps']}"
-                )
+            if not isinstance(pattern["biceps"], list) or len(pattern["biceps"]) != patterns["sequence_length"]:
+                errors.append(f"Pattern {pattern_id} has invalid biceps: " f"{pattern['biceps']}")
 
         # Triceps
         if "triceps" in pattern:
-            if (
-                not isinstance(pattern["triceps"], list)
-                or len(pattern["triceps"]) != patterns["sequence_length"]
-            ):
-                errors.append(
-                    f"Pattern {pattern_id} has invalid triceps: "
-                    f"{pattern['triceps']}"
-                )
+            if not isinstance(pattern["triceps"], list) or len(pattern["triceps"]) != patterns["sequence_length"]:
+                errors.append(f"Pattern {pattern_id} has invalid triceps: " f"{pattern['triceps']}")
 
         # Color
         if "color" in pattern:
             if not re.match(HEX_COLOR_REGEX, pattern["color"]):
-                errors.append(
-                    f"Pattern {pattern_id} has invalid color: "
-                    f"{pattern['color']}"
-                )
+                errors.append(f"Pattern {pattern_id} has invalid color: " f"{pattern['color']}")
 
     # --------------------------------------------------------
     # Grid
@@ -230,15 +213,10 @@ def validate_main_data(df, protocol):
     NY = protocol["grid"]["y"]
 
     if not df["x"].between(1, NX).all():
-        errors.append(
-            f"Some x coordinates are out of range (1-{NX})"
-        )
+        errors.append(f"Some x coordinates are out of range (1-{NX})")
 
     if not df["y"].between(1, NY).all():
-        errors.append(
-            f"Some y coordinates are out of range (1-{NY})"
-        )
-
+        errors.append(f"Some y coordinates are out of range (1-{NY})")
 
     # --------------------------------------------------------
     # Validation result
@@ -252,6 +230,7 @@ def validate_main_data(df, protocol):
 
     print("[OK] Subject data validated successfully")
     return True
+
 
 def validate_subjects_data(df):
     """
@@ -289,10 +268,7 @@ def validate_subjects_data(df):
     missing_columns = required_columns - set(df.columns)
 
     if missing_columns:
-        print(
-            f"Missing columns in Subjects sheet: "
-            f"{sorted(missing_columns)}"
-        )
+        print(f"Missing columns in Subjects sheet: " f"{sorted(missing_columns)}")
         return False
 
     if df["subject"].isna().any():
@@ -311,10 +287,7 @@ def validate_subjects_data(df):
 
     for column in numeric_columns:
         if not pd.api.types.is_numeric_dtype(df[column]):
-            print(
-                f"Column '{column}' in Subjects sheet "
-                f"must be numeric."
-            )
+            print(f"Column '{column}' in Subjects sheet " f"must be numeric.")
             return False
 
     if df["block_order"].isna().any():

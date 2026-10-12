@@ -1,5 +1,5 @@
 {
-  "experiment_id": "baseline",
+  "experiment_id": "starting_angle",
   "protocol_id": "right_120deg",  
   "arm": "right",
   "initial_angle": 120,
@@ -81,9 +81,9 @@
       },
       {
         "id": "P07",
-        "biceps": [0, 0, 1],
-        "triceps": [0, 0, 1],
-        "text": "001_001",
+        "biceps": [1, 0, 0],
+        "triceps": [1, 0, 0],
+        "text": "100_100",
         "effect": "control",
         "code": "E0F0",
         "color": "#c9c9c9",

@@ -7,7 +7,6 @@ import numpy as np
 
 import config as cfg
 
-
 # ============================================================
 # ANALYSIS SETTINGS
 # ============================================================
@@ -38,6 +37,7 @@ ANALYSIS_COLUMNS = {
 # GENERIC HELPERS
 # ============================================================
 
+
 def _get_analysis_settings(analysis_name):
     """
     Return plotting settings for a regression analysis.
@@ -54,11 +54,10 @@ def _get_analysis_settings(analysis_name):
     """
 
     if analysis_name not in ANALYSIS_COLUMNS:
-        raise ValueError(
-            f"Unknown regression analysis: {analysis_name}"
-        )
+        raise ValueError(f"Unknown regression analysis: {analysis_name}")
 
     return ANALYSIS_COLUMNS[analysis_name]
+
 
 def _get_subject_result(subject_results, subject):
     """
@@ -80,12 +79,12 @@ def _get_subject_result(subject_results, subject):
         is not found.
     """
 
-
     for result in subject_results:
         if result["subject"] == subject:
             return result
 
     return None
+
 
 def _get_pattern_to_process():
     """
@@ -159,10 +158,7 @@ def _plot_regression_line(ax, result, x_min, x_max):
         x_line,
         y_line,
         linewidth=2,
-        label=(
-            f"Fit: y = {result['slope']:.2f}x\n"
-            f"R²₀ = {result['r_squared']:.2f}"
-        ),
+        label=(f"Fit: y = {result['slope']:.2f}x\n" f"R²₀ = {result['r_squared']:.2f}"),
         zorder=2,
     )
 
@@ -223,6 +219,7 @@ def _format_regression_plot(ax, analysis_name, protocol, title):
 # GROUP-LEVEL PLOT
 # ============================================================
 
+
 def plot_group_regression(
     plot_data,
     results,
@@ -263,15 +260,10 @@ def plot_group_regression(
 
     settings = _get_analysis_settings(analysis_name)
 
-    df = plot_data[
-        plot_data["pattern_pair"] == pattern
-    ].copy()
+    df = plot_data[plot_data["pattern_pair"] == pattern].copy()
 
     if df.empty:
-        print(
-            f"WARNING: no group-level data for "
-            f"pattern {pattern}, analysis {analysis_name}"
-        )
+        print(f"WARNING: no group-level data for " f"pattern {pattern}, analysis {analysis_name}")
         return None
 
     df = df.sort_values(settings["x"])
@@ -328,11 +320,7 @@ def plot_group_regression(
     # Save
     # --------------------------------------------------------
 
-    save_folder = (
-        Path(output_folder)
-        / analysis_name
-        / pattern
-    )
+    save_folder = Path(output_folder) / analysis_name / pattern
 
     save_folder.mkdir(
         parents=True,
@@ -351,6 +339,7 @@ def plot_group_regression(
 # ============================================================
 # SUBJECT-LEVEL PLOT
 # ============================================================
+
 
 def plot_subject_regression(
     plot_data,
@@ -395,16 +384,10 @@ def plot_subject_regression(
 
     settings = _get_analysis_settings(analysis_name)
 
-    df = plot_data[
-        (plot_data["subject"] == subject)
-        & (plot_data["pattern_pair"] == pattern)
-    ].copy()
+    df = plot_data[(plot_data["subject"] == subject) & (plot_data["pattern_pair"] == pattern)].copy()
 
     if df.empty:
-        print(
-            f"WARNING: no data for subject {subject}, "
-            f"pattern {pattern}, analysis {analysis_name}"
-        )
+        print(f"WARNING: no data for subject {subject}, " f"pattern {pattern}, analysis {analysis_name}")
         return None
 
     df = df.sort_values(settings["x"])
@@ -448,22 +431,14 @@ def plot_subject_regression(
         ax=ax,
         analysis_name=analysis_name,
         protocol=protocol,
-        title=(
-            f"{subject} – {pattern}\n"
-            f"{analysis_name.replace('_', ' ').title()}"
-        ),
+        title=(f"{subject} – {pattern}\n" f"{analysis_name.replace('_', ' ').title()}"),
     )
 
     # --------------------------------------------------------
     # Save
     # --------------------------------------------------------
 
-    save_folder = (
-        Path(output_folder)
-        / analysis_name
-        / subject
-        / pattern
-    )
+    save_folder = Path(output_folder) / analysis_name / subject / pattern
 
     save_folder.mkdir(
         parents=True,
@@ -482,6 +457,7 @@ def plot_subject_regression(
 # ============================================================
 # TRIAL-LEVEL PLOT
 # ============================================================
+
 
 def plot_trial_regression(
     plot_data,
@@ -537,15 +513,10 @@ def plot_trial_regression(
 
     settings = _get_analysis_settings(analysis_name)
 
-    df = plot_data[
-        plot_data["pattern_pair"] == pattern
-    ].copy()
+    df = plot_data[plot_data["pattern_pair"] == pattern].copy()
 
     if df.empty:
-        print(
-            f"WARNING: no trial-level data for "
-            f"pattern {pattern}, analysis {analysis_name}"
-        )
+        print(f"WARNING: no trial-level data for " f"pattern {pattern}, analysis {analysis_name}")
         return None
 
     df = df.sort_values(settings["x"])
@@ -568,7 +539,7 @@ def plot_trial_regression(
         s=35,
         alpha=0.6,
         label="Individual trials",
-        color = "#b4b4b4",
+        color="#b4b4b4",
         zorder=3,
     )
 
@@ -576,10 +547,7 @@ def plot_trial_regression(
     # Mean across trials
     # --------------------------------------------------------
 
-    mean_data = (
-        df.groupby(settings["x"], as_index=False)[settings["y"]]
-        .mean()
-    )
+    mean_data = df.groupby(settings["x"], as_index=False)[settings["y"]].mean()
 
     ax.scatter(
         mean_data[settings["x"]],
@@ -611,10 +579,7 @@ def plot_trial_regression(
         ax=ax,
         analysis_name=analysis_name,
         protocol=protocol,
-        title=(
-            f"Trial level – {pattern}\n"
-            f"{analysis_name.replace('_', ' ').title()}"
-        ),
+        title=(f"Trial level – {pattern}\n" f"{analysis_name.replace('_', ' ').title()}"),
     )
 
     ax.set_ylim(min_y - 1, max_y + 1)
@@ -623,11 +588,7 @@ def plot_trial_regression(
     # Save
     # --------------------------------------------------------
 
-    save_folder = (
-        Path(output_folder)
-        / analysis_name
-        / pattern
-    )
+    save_folder = Path(output_folder) / analysis_name / pattern
 
     save_folder.mkdir(
         parents=True,
@@ -642,9 +603,11 @@ def plot_trial_regression(
 
     return save_path
 
+
 # ============================================================
 # RUN REGRESSION PLOTS
 # ============================================================
+
 
 def run_regression_plots(
     plot_data,
@@ -728,9 +691,7 @@ def run_regression_plots(
                     protocol=protocol,
                 )
 
-                plot_paths["group_level"][
-                    analysis_name
-                ][pattern] = path
+                plot_paths["group_level"][analysis_name][pattern] = path
 
     # ========================================================
     # SUBJECT LEVEL
@@ -741,9 +702,7 @@ def run_regression_plots(
         subject_data = plot_data["subject_level"]["subject_means"]
         subject_results = results["subject_level"]
 
-        subjects = sorted(
-            subject_data["subject"].unique()
-        )
+        subjects = sorted(subject_data["subject"].unique())
 
         patterns = _get_pattern_to_process()
 
@@ -772,9 +731,7 @@ def run_regression_plots(
                         protocol=protocol,
                     )
 
-                    plot_paths["subject_level"][
-                        analysis_name
-                    ].setdefault(subject, {})[pattern] = path
+                    plot_paths["subject_level"][analysis_name].setdefault(subject, {})[pattern] = path
 
     # ========================================================
     # TRIAL LEVEL
@@ -792,7 +749,6 @@ def run_regression_plots(
 
             plot_paths["trial_level"][analysis_name] = {}
 
-
             patterns = _get_pattern_to_process()
 
             for pattern in patterns:
@@ -805,8 +761,6 @@ def run_regression_plots(
                     protocol=protocol,
                 )
 
-                plot_paths["trial_level"][
-                    analysis_name
-                ][pattern] = path
+                plot_paths["trial_level"][analysis_name][pattern] = path
 
     return plot_paths

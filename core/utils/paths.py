@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def create_directory(directory_path):
     """
     Create a directory, including any missing parent directories.
@@ -16,11 +17,5 @@ def create_directory(directory_path):
     -------
     None
     """
-    directory_path.mkdir(parents=True,exist_ok=True)
+    directory_path.mkdir(parents=True, exist_ok=True)
     print(f"{directory_path} created.")
-
-
-    
-
-
-

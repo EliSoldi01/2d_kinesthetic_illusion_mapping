@@ -1,4 +1,4 @@
-﻿ # config.py
+﻿# config.py
 
 from pathlib import Path
 import sys
@@ -6,8 +6,8 @@ import sys
 # ============================================================
 # EXPERIMENT / PROTOCOL
 # ============================================================
-EXPERIMENT_ID = "left_arm"
-PROTOCOL_ID = "left_90deg"
+EXPERIMENT_ID = "starting_angle"
+PROTOCOL_ID = "right_120deg"
 
 # ============================================================
 # PROJECT PATHS
@@ -21,8 +21,8 @@ RESULTS_ROOT = Path("../results")
 # ============================================================
 # DATA PATHS
 # ============================================================
-PROTOCOL_PATH = (PROJECT_ROOT / "experiments" / EXPERIMENT_ID / PROTOCOL_ID / "protocol.json")
-DATA_PATH = (DATA_ROOT / EXPERIMENT_ID / PROTOCOL_ID / "data_all_subjects.xlsx")
+PROTOCOL_PATH = PROJECT_ROOT / "experiments" / EXPERIMENT_ID / PROTOCOL_ID / "protocol.json"
+DATA_PATH = DATA_ROOT / EXPERIMENT_ID / PROTOCOL_ID / "data_all_subjects.xlsx"
 
 # ============================================================
 # RESULTS PATHS
@@ -49,27 +49,27 @@ ALL_PATHS = [
 # ============================================================
 # ANALYSIS PIPELINE
 # ============================================================
-DO_HEATMAPS                 = True
-DO_SINGLE_SUBJECT_HEATMAPS  = False
-DO_EXTRACT_MODEL_PARAMETERS = False
-DO_REGRESSIONS              = False
-DO_MODEL_FITTING            = False
-DO_LOSOCV                   = False
+DO_HEATMAPS = True
+DO_SINGLE_SUBJECT_HEATMAPS = False
+DO_EXTRACT_MODEL_PARAMETERS = True
+DO_REGRESSIONS = False
+DO_MODEL_FITTING = True
+DO_LOSOCV = True
 
 
 # ============================================================
 # DATA / SUBJECT SELECTION
 # ============================================================
-SUBJECTS_TO_PROCESS         = None
+SUBJECTS_TO_PROCESS = None
 
-RECALC_SUBJECT              = True
-UPDATE_GROUP_AVERAGE        = True
+RECALC_SUBJECT = True
+UPDATE_GROUP_AVERAGE = True
 
 
 # ============================================================
 # MODEL
 # ============================================================
-USE_VIVIDNESS_WEIGHTS = True
+USE_VIVIDNESS_WEIGHTS = False
 
 PURE_PATTERNS = {
     "100_000": "b",

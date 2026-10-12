@@ -6,7 +6,6 @@ import pandas as pd
 import config as cfg
 from core.analysis import saturation
 
-
 # ============================================================
 # PARAMETER NAMES
 # ============================================================
@@ -31,6 +30,7 @@ PARAMETER_NAMES = {
 # ============================================================
 # PARAMETERS TABLE
 # ============================================================
+
 
 def build_parameters_table(results):
     """
@@ -75,19 +75,12 @@ def build_parameters_table(results):
 
         parameter_names = PARAMETER_NAMES.get(
             model_name,
-            [
-                f"parameter_{i + 1}"
-                for i in range(len(params))
-            ],
+            [f"parameter_{i + 1}" for i in range(len(params))],
         )
 
         for i, estimate in enumerate(params):
 
-            se = (
-                params_se[i]
-                if params_se is not None
-                else np.nan
-            )
+            se = params_se[i] if params_se is not None else np.nan
 
             if params_ci is not None:
 
@@ -99,14 +92,16 @@ def build_parameters_table(results):
                 ci_lower = np.nan
                 ci_upper = np.nan
 
-            rows.append({
-                "Model": model_name,
-                "Parameter": parameter_names[i],
-                "Estimate": estimate,
-                "SE": se,
-                "CI_lower": ci_lower,
-                "CI_upper": ci_upper,
-            })
+            rows.append(
+                {
+                    "Model": model_name,
+                    "Parameter": parameter_names[i],
+                    "Estimate": estimate,
+                    "SE": se,
+                    "CI_lower": ci_lower,
+                    "CI_upper": ci_upper,
+                }
+            )
 
     return pd.DataFrame(rows)
 
@@ -114,6 +109,7 @@ def build_parameters_table(results):
 # ============================================================
 # PERFORMANCE TABLE
 # ============================================================
+
 
 def build_performance_table(results):
     """
@@ -141,21 +137,13 @@ def build_performance_table(results):
         Delta_AIC.
     """
 
-
     rows = []
 
     valid_aics = [
-        result.get("aic", np.nan)
-        for result in results.values()
-        if result.get("ok", False)
-        and np.isfinite(result.get("aic", np.nan))
+        result.get("aic", np.nan) for result in results.values() if result.get("ok", False) and np.isfinite(result.get("aic", np.nan))
     ]
 
-    min_aic = (
-        min(valid_aics)
-        if valid_aics
-        else np.nan
-    )
+    min_aic = min(valid_aics) if valid_aics else np.nan
 
     for model_name, result in results.items():
 
@@ -172,15 +160,17 @@ def build_performance_table(results):
         else:
             delta_aic = np.nan
 
-        rows.append({
-            "Model": model_name,
-            "R2": result.get(
-                "r2_mean",
-                np.nan,
-            ),
-            "AIC": aic,
-            "Delta_AIC": delta_aic,
-        })
+        rows.append(
+            {
+                "Model": model_name,
+                "R2": result.get(
+                    "r2_mean",
+                    np.nan,
+                ),
+                "AIC": aic,
+                "Delta_AIC": delta_aic,
+            }
+        )
 
     return pd.DataFrame(rows)
 
@@ -188,6 +178,7 @@ def build_performance_table(results):
 # ============================================================
 # SATURATION TABLE
 # ============================================================
+
 
 def build_saturation_table(
     results,
@@ -243,16 +234,13 @@ def build_saturation_table(
         One row per threshold × side (Biceps, Triceps).
     """
 
-
     best_model_name = None
 
     try:
-        best_model_name = (
-            __import__(
-                "core.analysis.model_fitting",
-                fromlist=["get_best_model"],
-            ).get_best_model(results)
-        )
+        best_model_name = __import__(
+            "core.analysis.model_fitting",
+            fromlist=["get_best_model"],
+        ).get_best_model(results)
     except Exception:
         pass
 
@@ -272,15 +260,17 @@ def build_saturation_table(
 
         if not info["has_saturation"]:
 
-            rows.append({
-                "Model": info["model"],
-                "Threshold": info["threshold"],
-                "Side": None,
-                "X_ideal_deg": np.nan,
-                "Y_real_deg": np.nan,
-                "Duration_ideal_s": np.nan,
-                "Duration_real_s": np.nan,
-            })
+            rows.append(
+                {
+                    "Model": info["model"],
+                    "Threshold": info["threshold"],
+                    "Side": None,
+                    "X_ideal_deg": np.nan,
+                    "Y_real_deg": np.nan,
+                    "Duration_ideal_s": np.nan,
+                    "Duration_real_s": np.nan,
+                }
+            )
 
             continue
 
@@ -293,49 +283,53 @@ def build_saturation_table(
 
             if info["model"] == "tanh":
 
-                rows.extend([
-                    {
-                        "Model": info["model"],
-                        "Threshold": info["threshold"],
-                        "Side": "Biceps",
-                        "X_ideal_deg": info["x_sat"],
-                        "Y_real_deg": info["y_sat"],
-                        "Duration_ideal_s": np.nan,
-                        "Duration_real_s": np.nan,
-                    },
-                    {
-                        "Model": info["model"],
-                        "Threshold": info["threshold"],
-                        "Side": "Triceps",
-                        "X_ideal_deg": -info["x_sat"],
-                        "Y_real_deg": -info["y_sat"],
-                        "Duration_ideal_s": np.nan,
-                        "Duration_real_s": np.nan,
-                    },
-                ])
+                rows.extend(
+                    [
+                        {
+                            "Model": info["model"],
+                            "Threshold": info["threshold"],
+                            "Side": "Biceps",
+                            "X_ideal_deg": info["x_sat"],
+                            "Y_real_deg": info["y_sat"],
+                            "Duration_ideal_s": np.nan,
+                            "Duration_real_s": np.nan,
+                        },
+                        {
+                            "Model": info["model"],
+                            "Threshold": info["threshold"],
+                            "Side": "Triceps",
+                            "X_ideal_deg": -info["x_sat"],
+                            "Y_real_deg": -info["y_sat"],
+                            "Duration_ideal_s": np.nan,
+                            "Duration_real_s": np.nan,
+                        },
+                    ]
+                )
 
             elif info["model"] == "logistic4":
 
-                rows.extend([
-                    {
-                        "Model": info["model"],
-                        "Threshold": info["threshold"],
-                        "Side": "Biceps",
-                        "X_ideal_deg": info["x_sat_high"],
-                        "Y_real_deg": info["y_sat_high"],
-                        "Duration_ideal_s": np.nan,
-                        "Duration_real_s": np.nan,
-                    },
-                    {
-                        "Model": info["model"],
-                        "Threshold": info["threshold"],
-                        "Side": "Triceps",
-                        "X_ideal_deg": info["x_sat_low"],
-                        "Y_real_deg": info["y_sat_low"],
-                        "Duration_ideal_s": np.nan,
-                        "Duration_real_s": np.nan,
-                    },
-                ])
+                rows.extend(
+                    [
+                        {
+                            "Model": info["model"],
+                            "Threshold": info["threshold"],
+                            "Side": "Biceps",
+                            "X_ideal_deg": info["x_sat_high"],
+                            "Y_real_deg": info["y_sat_high"],
+                            "Duration_ideal_s": np.nan,
+                            "Duration_real_s": np.nan,
+                        },
+                        {
+                            "Model": info["model"],
+                            "Threshold": info["threshold"],
+                            "Side": "Triceps",
+                            "X_ideal_deg": info["x_sat_low"],
+                            "Y_real_deg": info["y_sat_low"],
+                            "Duration_ideal_s": np.nan,
+                            "Duration_real_s": np.nan,
+                        },
+                    ]
+                )
 
             continue
 
@@ -351,57 +345,53 @@ def build_saturation_table(
         )
         if info["model"] == "tanh":
 
-            rows.extend([
-                {
-                    "Model": info["model"],
-                    "Threshold": info["threshold"],
-                    "Side": "Biceps",
-                    "X_ideal_deg": info["x_sat"],
-                    "Y_real_deg": info["y_sat"],
-                    "Duration_ideal_s":
-                        durations["duration_biceps_ideal"],
-                    "Duration_real_s":
-                        durations["duration_biceps_real"],
-                },
-                {
-                    "Model": info["model"],
-                    "Threshold": info["threshold"],
-                    "Side": "Triceps",
-                    "X_ideal_deg": -info["x_sat"],
-                    "Y_real_deg": -info["y_sat"],
-                    "Duration_ideal_s":
-                        durations["duration_triceps_ideal"],
-                    "Duration_real_s":
-                        durations["duration_triceps_real"],
-                },
-            ])
+            rows.extend(
+                [
+                    {
+                        "Model": info["model"],
+                        "Threshold": info["threshold"],
+                        "Side": "Biceps",
+                        "X_ideal_deg": info["x_sat"],
+                        "Y_real_deg": info["y_sat"],
+                        "Duration_ideal_s": durations["duration_biceps_ideal"],
+                        "Duration_real_s": durations["duration_biceps_real"],
+                    },
+                    {
+                        "Model": info["model"],
+                        "Threshold": info["threshold"],
+                        "Side": "Triceps",
+                        "X_ideal_deg": -info["x_sat"],
+                        "Y_real_deg": -info["y_sat"],
+                        "Duration_ideal_s": durations["duration_triceps_ideal"],
+                        "Duration_real_s": durations["duration_triceps_real"],
+                    },
+                ]
+            )
 
         elif info["model"] == "logistic4":
 
-            rows.extend([
-                {
-                    "Model": info["model"],
-                    "Threshold": info["threshold"],
-                    "Side": "Biceps",
-                    "X_ideal_deg": info["x_sat_high"],
-                    "Y_real_deg": info["y_sat_high"],
-                    "Duration_ideal_s":
-                        durations["duration_biceps_ideal"],
-                    "Duration_real_s":
-                        durations["duration_biceps_real"],
-                },
-                {
-                    "Model": info["model"],
-                    "Threshold": info["threshold"],
-                    "Side": "Triceps",
-                    "X_ideal_deg": info["x_sat_low"],
-                    "Y_real_deg": info["y_sat_low"],
-                    "Duration_ideal_s":
-                        durations["duration_triceps_ideal"],
-                    "Duration_real_s":
-                        durations["duration_triceps_real"],
-                },
-            ])
+            rows.extend(
+                [
+                    {
+                        "Model": info["model"],
+                        "Threshold": info["threshold"],
+                        "Side": "Biceps",
+                        "X_ideal_deg": info["x_sat_high"],
+                        "Y_real_deg": info["y_sat_high"],
+                        "Duration_ideal_s": durations["duration_biceps_ideal"],
+                        "Duration_real_s": durations["duration_biceps_real"],
+                    },
+                    {
+                        "Model": info["model"],
+                        "Threshold": info["threshold"],
+                        "Side": "Triceps",
+                        "X_ideal_deg": info["x_sat_low"],
+                        "Y_real_deg": info["y_sat_low"],
+                        "Duration_ideal_s": durations["duration_triceps_ideal"],
+                        "Duration_real_s": durations["duration_triceps_real"],
+                    },
+                ]
+            )
 
     return pd.DataFrame(rows)
 
@@ -409,6 +399,7 @@ def build_saturation_table(
 # ============================================================
 # SAVE EXCEL
 # ============================================================
+
 
 def save_model_fitting_results(
     results,
@@ -456,13 +447,9 @@ def save_model_fitting_results(
         The path of the saved file (same as output_path).
     """
 
-    parameters_df = build_parameters_table(
-        results
-    )
+    parameters_df = build_parameters_table(results)
 
-    performance_df = build_performance_table(
-        results
-    )
+    performance_df = build_performance_table(results)
 
     saturation_df = build_saturation_table(
         results=results,
