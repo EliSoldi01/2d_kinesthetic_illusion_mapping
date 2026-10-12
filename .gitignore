@@ -1,5 +1,7 @@
 OLD/
 tests/
+export_documentation.py
+documentation.pdf
 
 __pycache__/
 *.pyc
