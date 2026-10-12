@@ -23,22 +23,76 @@ Starting from the raw trial data, the pipeline computes the elbow-centered angul
 
 ```
 .
-├── main.py                  # Entry point
-├── config.py                # Paths and analysis options
+├── main.py                         # Pipeline entry point
+├── config.py                       # Analysis settings and options
+├── requirements.txt                # Python dependencies
+├── additional_scripts/
+│   └── analyze_posture_trajectories.py
 ├── experiments/
-│   └── <EXPERIMENT_ID>/<PROTOCOL_ID>/protocol.json
-└── core/
-    ├── data_io/             # load_data.py, validate_data.py
-    ├── preprocessing/       # prepare_data.py, geometry.py, ordering.py
-    ├── analysis/            # extract_model_parameters.py, metrics.py, model_fitting.py,
-    │                        # saturation.py, regressions.py,
-    │                        # leave_one_subject_out_cross_validation.py
-    ├── visualization/       # plot_heatmaps.py, plot_model_fitting.py,
-    │                        # plot_regressions.py, plot_losocv.py
-    ├── excels/              # model_results.py, model_fitting_results.py,
-    │                        # regressions_results.py, loso_results.py
-    └── utils/               # paths.py, patterns.py, plot_config.py
+│   ├── baseline/
+│   │   └── right_90deg/
+│   │       └── protocol.json
+│   ├── illusion_or_confusion/
+│   │   └── right_90deg_IoC/
+│   │       └── protocol.json
+│   ├── left_arm/
+│   │   └── left_90deg/
+│   │       └── protocol.json
+│   └── starting_angle/
+│       ├── right_70deg/
+│       │   └── protocol.json
+│       ├── right_120deg/
+│       │   └── protocol.json
+│       └── right_70-90-120deg/
+│           └── protocol.json
+├── core/
+│   ├── data_io/
+│   │   ├── load_data.py
+│   │   └── validate_data.py
+│   ├── preprocessing/
+│   │   ├── prepare_data.py
+│   │   ├── geometry.py
+│   │   └── ordering.py
+│   ├── analysis/
+│   │   ├── extract_model_parameters.py
+│   │   ├── fitting_quadratic_interpolation.py
+│   │   ├── model_fitting.py
+│   │   ├── regressions.py
+│   │   ├── metrics.py
+│   │   ├── saturation.py
+│   │   └── leave_one_subject_out_cross_validation.py
+│   ├── visualization/
+│   │   ├── plot_heatmaps.py
+│   │   ├── plot_model_fitting.py
+│   │   ├── plot_regressions.py
+│   │   └── plot_losocv.py
+│   ├── excels/
+│   │   ├── model_results.py
+│   │   ├── model_fitting_results.py
+│   │   ├── regressions_results.py
+│   │   ├── loso_results.py
+│   │   └── save_quadratic_results.py
+│   └── utils/
+│       ├── paths.py
+│       ├── patterns.py
+│       └── plot_config.py
+└── documentation/
+    ├── index.html
+    └── api/
+        ├── core.html
+        ├── additional_scripts.html
+        ├── config.html
+        └── core/
+            ├── analysis.html
+            ├── data_io.html
+            ├── excels.html
+            ├── preprocessing.html
+            ├── utils.html
+            └── visualization.html
 ```
+
+The `core/` package contains the main data-processing and analysis modules. The `experiments/` directory stores protocol configurations. 
+The `documentation/` directory contains the generated HTML documentation.
 
 ## Installation
 
@@ -177,6 +231,18 @@ The best model is selected by AIC. Parameter standard errors, 95% confidence int
 ### Leave-one-subject-out cross-validation
 
 For each subject, `Kb` and `Kt` are estimated from the pure-pattern trials of all other subjects and used to predict the held-out subject. The results include per-subject metrics, their mean and standard deviation, and pooled metrics across all held-out trials.
+
+## Documentation
+
+The complete code documentation is available on **[GitHub Pages](YOUR_DOCUMENTATION_URL)**.
+
+It includes the project modules, functions, parameters, and implementation details, organized into the following sections:
+
+- **Core** — data loading, preprocessing, analysis, model fitting, regressions, and visualization.
+- **Additional Scripts** — auxiliary scripts and utilities.
+- **Configuration** — experiment settings and analysis options.
+
+For installation instructions and an overview of the analysis pipeline, see below.
 
 ## License
 
