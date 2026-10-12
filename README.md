@@ -234,7 +234,7 @@ For each subject, `Kb` and `Kt` are estimated from the pure-pattern trials of al
 
 ## Documentation
 
-The complete code documentation is available on **[GitHub Pages](YOUR_DOCUMENTATION_URL)**.
+The complete code documentation is available on **[GitHub Pages (https://elisoldi01.github.io/2d_kinesthetic_illusion_mapping/)]**.
 
 It includes the project modules, functions, parameters, and implementation details, organized into the following sections:
 
