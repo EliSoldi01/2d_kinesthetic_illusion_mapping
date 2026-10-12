@@ -76,7 +76,7 @@ Starting from the raw trial data, the pipeline computes the elbow-centered angul
 │       ├── paths.py
 │       ├── patterns.py
 │       └── plot_config.py
-└── documentation/
+└── docs/
     ├── index.html
     └── api/
         ├── core.html
@@ -92,7 +92,7 @@ Starting from the raw trial data, the pipeline computes the elbow-centered angul
 ```
 
 The `core/` package contains the main data-processing and analysis modules. The `experiments/` directory stores protocol configurations. 
-The `documentation/` directory contains the generated HTML documentation.
+The `docs/` directory contains the generated HTML documentation.
 
 ## Installation
 
